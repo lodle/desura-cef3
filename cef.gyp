@@ -492,6 +492,9 @@
             '<(SHARED_INTERMEDIATE_DIR)/ui/ui_resources/ui_unscaled_resources.rc',
             'libcef_dll/libcef_dll.rc',
           ],
+          'resource_include_dirs': [
+            '$(OutDir)/obj/global_intermediate/webkit',
+          ], 		  
           'link_settings': {
             'libraries': [
               '-lcomctl32.lib',
@@ -614,6 +617,15 @@
           ],
           'message': 'Generating about:credits.',
         },
+      ],
+      'conditions': [
+        [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
+           'dependencies' : [
+              '<(DEPTH)/build/linux/system.gyp:gtk',
+              '<(DEPTH)/tools/xdisplaycheck/xdisplaycheck.gyp:xdisplaycheck',
+	          '../build/linux/system.gyp:gtk'
+           ],
+        }],
       ],
     },
     {
