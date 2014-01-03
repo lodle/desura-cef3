@@ -7,8 +7,16 @@ https://wiki.lindenlab.com/wiki/Mercurial_Vendor_Branches
 vendor_svncef3 is the unmodified Google source.
 master contains Linden modifications.
 
-The top-level repository directory corresponds to the 'src' directory. Its
-original path in the bootstrap tarball would be:
-home/src_tarball/tarball/chromium/src.
+However, this is not a standalone repository. It must be checked out under the
+Google Chromium source tree as src/cef. Please see
+https://wiki.lindenlab.com/wiki/Desura/CEF for build instructions.
 
-So when the directions say to 'cd src', that's the top level of this repo.
+NOTE: One of the CEF build scripts requires a commit message line in a
+specific format for each update from Google source. Specifically, every time
+you merge a new vendor_svncef3 update to the master branch, the commit message
+must include a line of the form:
+
+git-svn-id: @1503
+
+where '1503' represents the Subversion revision number of the updated Google
+code.
