@@ -621,6 +621,19 @@ bool CefBrowserImpl::OnMessageReceived(const IPC::Message& message) {
   return handled;
 }
 
+void CefBrowserImpl::UIT_CustomContextMenuAction(int action)
+{
+  if (UIT_GetWebViewHost() && UIT_GetWebViewHost()->webview())
+    UIT_GetWebViewHost()->webview()->performCustomContextMenuAction(action);
+}
+
+ void CefBrowserImpl::UIT_InspectElement(int x, int y)
+ {
+  if (UIT_GetWebViewHost() && UIT_GetWebViewHost()->webview())
+	  UIT_GetWebViewHost()->webview()->inspectElementAt(WebKit::WebPoint(x,y));
+ }
+
+
 
 // RenderViewObserver::OnMessageReceived message handlers.
 // -----------------------------------------------------------------------------

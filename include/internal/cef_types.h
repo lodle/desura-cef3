@@ -571,6 +571,26 @@ typedef struct _cef_urlparts_t {
   cef_string_t query;
 } cef_urlparts_t;
 
+typedef struct _cef_handler_menuitem_t
+{
+  int action;
+  int type;
+  int enabled;
+  int checked;
+
+  cef_string_t label;
+} cef_handler_menuitem_t;
+
+// The cef_handler_menuinfo_t typeFlags value will be a combination of the
+// following values.
+enum cef_handler_menuitemtype_t
+{
+  MENUITEMTYPE_SEPERATOR = 1,
+  MENUITEMTYPE_OPTION,
+  MENUITEMTYPE_CHECKABLEOPTION,
+  MENUITEMTYPE_GROUP,
+};
+
 ///
 // Cookie information.
 ///
