@@ -95,7 +95,7 @@ public:
 
 
 
-	void setBrowser(CefBrowser* browser);
+	virtual void setBrowser(CefBrowser* browser);
 	
 	void setContext(CefRefPtr<CefV8Context> context);
 
@@ -119,6 +119,7 @@ public:
 	ChromiumRenderer(WIN_HANDLE handle, const char* defaultUrl, int width, int height);
 
 	virtual void setWindowSize(int width, int height);
+	virtual void getWindowSize(int &width, int &height);
 
 	virtual void renderToBuffer(void* pBuffer, unsigned int width, unsigned int height);
 
@@ -133,6 +134,12 @@ public:
 	{
 		return this;
 	}
+
+	virtual void setBrowser(CefBrowser* browser);
+
+private:
+	int m_nDefaultWidth;
+	int m_nDefaultHeight;
 };
 
 
