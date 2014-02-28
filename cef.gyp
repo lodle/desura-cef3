@@ -1165,7 +1165,7 @@
                         '../breakpad/breakpad.gyp:breakpad_handler',
                         '../third_party/angle/src/build_angle.gyp:libEGL',
                         '../third_party/angle/src/build_angle.gyp:libGLESv2',
-                        '../views/views.gyp:views',
+                        '../ui/views/views.gyp:views',
                 ],
                 'sources': [
                         '$(OutDir)/obj/global_intermediate/webkit/webkit_chromium_resources.rc',
