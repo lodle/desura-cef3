@@ -17,10 +17,11 @@
 #include <algorithm>
 
 class SchemeHandlerFactory;
+class CefResourceHandler;
 
 std::map<std::string, SchemeHandlerFactory* > g_mSchemeExtenders;
 
-class SchemeHandlerFactory : public CefRefCountWrapper<CefSchemeHandlerFactory>
+class SchemeHandlerFactory : public CefSchemeHandlerFactory
 {
 public:
 	SchemeHandlerFactory()
@@ -41,7 +42,7 @@ public:
 		p.second->destroy();
 	}
 
-	CefRefPtr<CefSchemeHandler> Create(const CefString& scheme_name, CefRefPtr<CefRequest> request)
+	CefRefPtr<CefResourceHandler> Create(const CefString& scheme_name, CefRefPtr<CefRequest> request)
 	{
 		std::string url = request->GetURL();
 		std::vector<size_t> slashes;
@@ -113,7 +114,7 @@ SchemeExtender::~SchemeExtender()
 }
 
 
-bool SchemeExtender::ProcessRequest(CefRefPtr<CefRequest> request, CefString& redirectUrl, CefRefPtr<CefSchemeHandlerCallback> callback)
+bool SchemeExtender::ProcessRequest(CefRefPtr<CefRequest> request, CefRefPtr<CefCallback> callback)
 {
 	if (!m_pSchemeExtender)
 		return false;
@@ -144,7 +145,7 @@ void SchemeExtender::Cancel()
 	m_pSchemeExtender->cancel();
 }
 
-void SchemeExtender::GetResponseHeaders(CefRefPtr<CefResponse> response, int64& response_length)
+void SchemeExtender::GetResponseHeaders(CefRefPtr<CefResponse> response, int64& response_length, CefString& redirectUrl)
 {
 	if (!m_pSchemeExtender)
 		return;
@@ -156,7 +157,7 @@ void SchemeExtender::GetResponseHeaders(CefRefPtr<CefResponse> response, int64& 
 		response->SetMimeType(mime);
 }
 
-bool SchemeExtender::ReadResponse(void* data_out, int bytes_to_read, int& bytes_read, CefRefPtr<CefSchemeHandlerCallback> callback)
+bool SchemeExtender::ReadResponse(void* data_out, int bytes_to_read, int& bytes_read, CefRefPtr<CefCallback> callback)
 {
 	if (!m_pSchemeExtender)
 		return false;

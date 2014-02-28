@@ -1110,6 +1110,117 @@
         }],
       ],
     },
+    {
+        'target_name': 'cef_desura',
+        'type': 'shared_library',
+        'msvs_guid': '6DDD4763-2525-02FD-1CB2-5B5021AC5E96',
+        'dependencies': [
+            'libcef_static',
+        ],
+        'defines': [
+            'BUILDING_CEF_SHARED',
+            'IGNORE_C_API',
+        ],
+        'include_dirs' : [
+            '.',
+            '..',
+            'cef_desura',
+            'cef_desura_includes',
+        ],
+##      'resource_include_dirs' :  [
+##          '.',
+##          '..',
+##      ],      
+        'sources' : [
+            'cef_desura/ChromiumBrowser.cpp',
+            'cef_desura/ChromiumBrowser.h',
+            'cef_desura/ChromiumBrowserEvents.cpp',
+            'cef_desura/ChromiumBrowserEvents.h',
+            'cef_desura/Cookie.cpp',
+            'cef_desura/JavaScriptExtender.cpp',
+            'cef_desura/JavaScriptExtender.h',
+            'cef_desura/JavaScriptFactory.cpp',
+            'cef_desura/JavaScriptFactory.h',
+            'cef_desura/JavaScriptObject.cpp',
+            'cef_desura/JavaScriptObject.h',
+            'cef_desura/JavaScriptContext.cpp',
+            'cef_desura/JavaScriptContext.h',           
+            'cef_desura/MenuInfo.cpp',
+            'cef_desura/MenuInfo.h',
+            'cef_desura/SchemeExtender.cpp',
+            'cef_desura/SchemeExtender.h',
+            'cef_desura/SchemePost.cpp',
+            'cef_desura/SchemePost.h',
+            'cef_desura/SchemeRequest.cpp',
+            'cef_desura/SchemeRequest.h',
+        ],
+        'all_dependent_settings': {
+            'cflags_cc': [
+                '-std=c++98',
+            ],
+        },
+        'conditions' : [
+            ['OS=="win"', {
+                'dependencies': [
+                        '../breakpad/breakpad.gyp:breakpad_handler',
+                        '../third_party/angle/src/build_angle.gyp:libEGL',
+                        '../third_party/angle/src/build_angle.gyp:libGLESv2',
+                        '../views/views.gyp:views',
+                ],
+                'sources': [
+                        '$(OutDir)/obj/global_intermediate/webkit/webkit_chromium_resources.rc',
+                        '$(OutDir)/obj/global_intermediate/webkit/webkit_resources.rc',
+                        '$(OutDir)/obj/global_intermediate/webkit/webkit_strings_en-US.rc',
+                        'include/internal/cef_types_win.h',
+                        'include/internal/cef_win.h',
+                        'libcef_dll/libcef_dll.rc',
+                ],
+                'resource_include_dirs': [
+                    '$(OutDir)/obj/global_intermediate/webkit',
+                ],        
+                'link_settings': {
+                    'libraries': [
+                        '-lcomctl32.lib',
+                    ],
+                },
+            }],
+            [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
+                'dependencies' : [
+                    '<(DEPTH)/build/linux/system.gyp:gtk',
+                    '<(DEPTH)/tools/xdisplaycheck/xdisplaycheck.gyp:xdisplaycheck',
+                    '../build/linux/system.gyp:gtk',
+                ],
+                'variables': {
+                    'repack_path': '../tools/data_pack/repack.py',
+                  },
+                  'actions': [
+                    {
+                      # TODO(mark): Make this work with more languages than the
+                      # hardcoded en-US.
+                      'action_name': 'repack_locale',
+                      'variables': {
+                        'pak_inputs': [
+                          '<(SHARED_INTERMEDIATE_DIR)/net/net_resources.pak',
+                          '<(SHARED_INTERMEDIATE_DIR)/ui/gfx/gfx_resources.pak',
+                          '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_chromium_resources.pak',
+                          '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_strings_en-US.pak',
+                          '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_resources.pak',
+                          '<(SHARED_INTERMEDIATE_DIR)/cef/cef_resources.pak',
+                        ],
+                      },
+                      'inputs': [
+                        '<(repack_path)',
+                        '<@(pak_inputs)',
+                      ],
+                      'outputs': [
+                        '<(INTERMEDIATE_DIR)/repack/cef_data.pak',
+                      ],
+                      'action': ['python', '<(repack_path)', '<@(_outputs)', '<@(pak_inputs)'],
+                    },
+                  ],
+            }],
+        ],
+    },
   ],
   'conditions': [
     ['os_posix==1 and OS!="mac" and OS!="android" and gcc_version>=46', {

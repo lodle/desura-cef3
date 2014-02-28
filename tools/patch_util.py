@@ -296,7 +296,7 @@ class PatchInfo(object):
           continue
     else:
       if not hunkskip:
-        warning("patch file incomplete - %s" % filename)
+        warning("patch file incomplete - %s" % getattr(stream, "name", "input string"))
         # sys.exit(?)
       else:
         # duplicated message when an eof is reached

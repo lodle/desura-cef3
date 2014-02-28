@@ -14,7 +14,8 @@
 #endif
 
 #include "ChromiumBrowser.h"
-#include "include/cef.h"
+//#include "include/cef.h"
+#include "include/cef_app.h"
 #include "JavaScriptExtender.h"
 #include "SchemeExtender.h"
 
@@ -57,6 +58,8 @@ extern "C"
 	DLLINTERFACE bool CEF_Init(bool threaded, const char* cachePath, const char* logPath, const char* userAgent)
 	{
 		CefSettings settings;
+		CefMainArgs args;
+		CefRefPtr<CefApp> app;
 
 
 		cef_string_copy(cachePath, strlen(cachePath), &settings.cache_path);
@@ -65,13 +68,13 @@ extern "C"
 		settings.multi_threaded_message_loop = threaded;
 
 
-		if (!CefInitialize(settings))
+		if (!CefInitialize(args, settings, app))
 			return false;
 
 #if defined(_WIN32)
-		CefRegisterFlashPlugin("gcswf32.dll");
+		CefAddWebPluginPath("gcswf32.dll");
 #else
-	CefRegisterFlashPlugin("libdesura_flashwrapper.so");
+		CefAddWebPluginPath("libdesura_flashwrapper.so");
 #endif
 
 		return true;
@@ -138,7 +141,7 @@ public:
 		m_Action = action;
 	}
 
-	virtual void Execute(CefThreadId threadId)
+	virtual void Execute()
 	{
 		if (!m_pBrowser)
 			return;
@@ -166,10 +169,12 @@ public:
 
 		switch (m_Action)
 		{
+/*==========================================================================*|
 			case A_ZOOMIN:		frame->ZoomIn();	break;
 			case A_ZOOMOUT:		frame->ZoomOut();	break;
 			case A_ZOOMNORMAL:	frame->ZoomNormal(); break;
 			case A_PRINT:		frame->Print();		break;
+|*==========================================================================*/
 			case A_VIEWSOURCE:	frame->ViewSource(); break;
 			case A_UNDO:		frame->Undo();		break;
 			case A_REDO:		frame->Redo();		break;
@@ -235,14 +240,14 @@ CefBrowserSettings ChromiumBrowser::getBrowserDefaults()
 {
 	CefBrowserSettings browserDefaults;
 
-	browserDefaults.developer_tools_disabled = false;
-	browserDefaults.webgl_disabled = true;
-	browserDefaults.universal_access_from_file_urls_allowed = true;
-	browserDefaults.file_access_from_file_urls_allowed = true;
-	browserDefaults.java_disabled = true;
-	browserDefaults.javascript_close_windows_disallowed = true;
-	browserDefaults.javascript_open_windows_disallowed = true;
-	browserDefaults.drag_drop_disabled = true;
+//	browserDefaults.developer_tools_disabled = false;
+	browserDefaults.webgl = STATE_DISABLED;
+	browserDefaults.universal_access_from_file_urls = STATE_ENABLED;
+	browserDefaults.file_access_from_file_urls = STATE_ENABLED;
+	browserDefaults.java = STATE_DISABLED;
+	browserDefaults.javascript_close_windows = STATE_DISABLED;
+	browserDefaults.javascript_open_windows = STATE_DISABLED;
+//	browserDefaults.drag_drop = STATE_DISABLED;
 
 	return browserDefaults;
 }
@@ -274,7 +279,7 @@ public:
 		m_szDefaultUrl = defaultUrl;
 	}
 
-	void Execute(CefThreadId threadId)
+	void Execute()
 	{
 		m_pBrowser->initCallback(m_szDefaultUrl);
 	}

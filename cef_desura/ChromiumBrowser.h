@@ -16,7 +16,10 @@
 #endif
 
 #include "ChromiumBrowserI.h"
-#include "include/cef.h"
+//#include "include/cef.h"
+#include "include/cef_browser.h"
+#include "include/cef_task.h"
+#include <string>
 
 class ChromiumBrowserEvents;
 
@@ -31,7 +34,7 @@ class ChromiumBrowser : public ChromiumDLL::ChromiumBrowserI
 {
 public:
 	ChromiumBrowser(WIN_HANDLE handle, const char* defaultUrl);
-	~ChromiumBrowser();
+	virtual ~ChromiumBrowser();
 
 	void init(const char *defaultUrl);
 	virtual void onFocus();
@@ -105,7 +108,7 @@ private:
 	int m_iLastTask;
 };
 
-class TaskWrapper : public CefRefCountWrapper<CefTask>
+class TaskWrapper : public CefTask
 {
 public:
 	TaskWrapper(ChromiumDLL::CallbackI* callback)
@@ -119,11 +122,13 @@ public:
 			m_pCallback->destroy();
 	}
 
-	virtual void Execute(CefThreadId threadId)
+	virtual void Execute()
 	{
 		if (m_pCallback)
 			m_pCallback->run();
 	}
+
+	IMPLEMENT_REFCOUNTING(TaskWrapper)
 
 private:
 	ChromiumDLL::CallbackI* m_pCallback;

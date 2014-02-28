@@ -578,6 +578,11 @@ typedef struct _cef_handler_menuitem_t
   int enabled;
   int checked;
 
+// nat: TODO: need to figure out whether/how to apply this patch 
+//   int customSize;
+//   cef_handler_menuitem_t* customItems;
+// 
+
   cef_string_t label;
 } cef_handler_menuitem_t;
 
@@ -1255,6 +1260,10 @@ enum cef_menu_id_t {
   MENU_ID_FIND                = 130,
   MENU_ID_PRINT               = 131,
   MENU_ID_VIEW_SOURCE         = 132,
+
+  MENU_ID_ZOOM_IN             = 133,
+  MENU_ID_ZOOM_OUT            = 134,
+  MENU_ID_ZOOM_NORMAL         = 135,
 
   // All user-defined menu IDs should come between MENU_ID_USER_FIRST and
   // MENU_ID_USER_LAST to avoid overlapping the Chromium and CEF ID ranges

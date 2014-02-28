@@ -1,0 +1,205 @@
+--- ./apps/shell_window.cc	2013-12-10 11:45:49.000000000 -0500
++++ ./apps/shell_window.cc	2014-02-18 20:39:31.000000000 -0500
+@@ -223,7 +223,7 @@
+ WebContents* ShellWindow::OpenURLFromTab(WebContents* source,
+                                          const content::OpenURLParams& params) {
+   // Don't allow the current tab to be navigated. It would be nice to map all
+-  // anchor tags (even those without target="_blank") to new tabs, but right
++  // anchor tags (even those without target="_self") to new tabs, but right
+   // now we can't distinguish between those and <meta> refreshes or window.href
+   // navigations, which we don't want to allow.
+   // TOOD(mihaip): Can we check for user gestures instead?
+--- ./chrome/browser/prerender/prerender_browsertest.cc	2013-12-10 11:42:18.000000000 -0500
++++ ./chrome/browser/prerender/prerender_browsertest.cc	2014-02-18 20:39:31.000000000 -0500
+@@ -2417,7 +2417,7 @@
+   OpenDestURLViaWindowOpen();
+ }
+ 
+-// Checks that if a page is opened due to click on a href with target="_blank"
++// Checks that if a page is opened due to click on a href with target="_self"
+ // and both pages are in the same domain the prerendered page is not used.
+ IN_PROC_BROWSER_TEST_F(PrerenderBrowserTest,
+                        PrerenderSameDomainWindowOpenerClickTarget) {
+--- ./chrome/browser/referrer_policy_browsertest.cc	2013-10-16 18:58:25.000000000 -0400
++++ ./chrome/browser/referrer_policy_browsertest.cc	2014-02-18 20:39:31.000000000 -0500
+@@ -135,7 +135,7 @@
+         "&redirect=" + (redirect ? "true" : "false") +
+         "&link=" +
+             (button == WebKit::WebMouseEvent::ButtonNone ? "false" : "true") +
+-        "&target=" + (target_blank ? "_blank" : ""));
++        "&target=" + (target_blank ? "_self" : ""));
+ 
+     ui_test_utils::WindowedTabAddedNotificationObserver tab_added_observer(
+         content::NotificationService::AllSources());
+--- ./content/browser/browser_plugin/browser_plugin_guest.h	2013-12-10 11:40:45.000000000 -0500
++++ ./content/browser/browser_plugin/browser_plugin_guest.h	2014-02-18 20:39:31.000000000 -0500
+@@ -169,7 +169,7 @@
+                                    const string16& message,
+                                    int32 line_no,
+                                    const string16& source_id) OVERRIDE;
+-  // If a new window is created with target="_blank" and rel="noreferrer", then
++  // If a new window is created with target="_self" and rel="noreferrer", then
+   // this method is called, indicating that the new WebContents is ready to be
+   // attached.
+   virtual void AddNewContents(WebContents* source,
+--- ./content/browser/webui/generic_handler.cc	2013-01-30 04:00:41.000000000 -0500
++++ ./content/browser/webui/generic_handler.cc	2014-02-18 20:39:31.000000000 -0500
+@@ -47,7 +47,7 @@
+ 
+   WindowOpenDisposition disposition = ui::DispositionFromClick(
+       middle_button, alt_key, ctrl_key, meta_key, shift_key);
+-  if (disposition == CURRENT_TAB && target_string == "_blank")
++  if (disposition == CURRENT_TAB && target_string == "_self")
+     disposition = NEW_FOREGROUND_TAB;
+ 
+   web_ui()->GetWebContents()->OpenURL(OpenURLParams(
+--- ./content/renderer/render_view_impl.cc	2013-12-10 11:40:24.000000000 -0500
++++ ./content/renderer/render_view_impl.cc	2014-02-18 20:39:31.000000000 -0500
+@@ -2342,7 +2342,7 @@
+     params.user_gesture = true;
+   params.window_container_type = WindowFeaturesToContainerType(features);
+   params.session_storage_namespace_id = session_storage_namespace_id_;
+-  if (frame_name != "_blank")
++  if (frame_name != "_self")
+     params.frame_name = frame_name;
+   params.opener_frame_id = creator->identifier();
+   params.opener_url = creator->document().url();
+--- ./content/test/plugin/plugin_geturl_test.cc	2013-10-16 18:38:20.000000000 -0400
++++ ./content/test/plugin/plugin_geturl_test.cc	2014-02-18 20:39:31.000000000 -0500
+@@ -100,7 +100,7 @@
+       return NPERR_NO_ERROR;
+     } else if (!referrer_target_url_.empty()) {
+       HostFunctions()->pushpopupsenabledstate(id(), true);
+-      HostFunctions()->geturl(id(), referrer_target_url_.c_str(), "_blank");
++      HostFunctions()->geturl(id(), referrer_target_url_.c_str(), "_self");
+       HostFunctions()->poppopupsenabledstate(id());
+       return NPERR_NO_ERROR;
+     } else if (handle_url_redirects_) {
+--- ./content/test/plugin/plugin_javascript_open_popup.cc	2013-10-16 18:38:20.000000000 -0400
++++ ./content/test/plugin/plugin_javascript_open_popup.cc	2014-02-18 20:39:31.000000000 -0500
+@@ -31,7 +31,7 @@
+   if (!popup_window_test_started_) {
+     popup_window_test_started_ = true;
+     HostFunctions()->geturl(
+-        id(), "popup_window_with_target_plugin.html", "_blank");
++        id(), "popup_window_with_target_plugin.html", "_self");
+   }
+   return NPERR_NO_ERROR;
+ }
+--- ./third_party/WebKit/Source/bindings/v8/custom/V8WindowCustom.cpp	2014-02-18 21:13:38.000000000 -0500
++++ ./third_party/WebKit/Source/bindings/v8/custom/V8WindowCustom.cpp	2014-02-18 21:13:02.000000000 -0500
+@@ -368,7 +368,7 @@
+ 
+     // FIXME: Handle exceptions properly.
+     String urlString = toWebCoreStringWithUndefinedOrNullCheck(args[0]);
+-    AtomicString frameName = (args[1]->IsUndefined() || args[1]->IsNull()) ? "_blank" : toWebCoreAtomicString(args[1]);
++    AtomicString frameName = (args[1]->IsUndefined() || args[1]->IsNull()) ? "_self" : toWebCoreAtomicString(args[1]);
+ 
+     String windowFeaturesString = toWebCoreStringWithUndefinedOrNullCheck(args[2]);
+ 
+--- ./third_party/WebKit/Source/core/html/HTMLViewSourceDocument.cpp	2013-12-10 12:04:48.000000000 -0500
++++ ./third_party/WebKit/Source/core/html/HTMLViewSourceDocument.cpp	2014-02-19 18:20:42.000000000 -0500
+@@ -295,7 +295,7 @@
+     else
+         classValue = "webkit-html-attribute-value webkit-html-resource-link";
+     anchor->setAttribute(classAttr, classValue);
+-    anchor->setAttribute(targetAttr, "_blank");
++    anchor->setAttribute(targetAttr, "_self");
+     anchor->setAttribute(hrefAttr, url);
+     m_current->parserAppendChild(anchor);
+     return anchor.release();
+--- ./third_party/WebKit/Source/core/loader/FrameLoader.cpp	2013-12-10 12:04:06.000000000 -0500
++++ ./third_party/WebKit/Source/core/loader/FrameLoader.cpp	2014-02-18 20:39:31.000000000 -0500
+@@ -1425,7 +1425,7 @@
+         mainFrame = newPage->mainFrame();
+     }
+ 
+-    if (frameName != "_blank")
++    if (frameName != "_self")
+         mainFrame->tree().setName(frameName);
+ 
+     mainFrame->page()->setOpenedByDOM();
+--- ./third_party/WebKit/Source/core/page/CreateWindow.cpp	2013-12-10 12:04:07.000000000 -0500
++++ ./third_party/WebKit/Source/core/page/CreateWindow.cpp	2014-02-18 20:39:32.000000000 -0500
+@@ -46,7 +46,7 @@
+ {
+     ASSERT(!features.dialog || request.frameName().isEmpty());
+ 
+-    if (!request.frameName().isEmpty() && request.frameName() != "_blank") {
++    if (!request.frameName().isEmpty() && request.frameName() != "_self") {
+         if (Frame* frame = lookupFrame->loader().findFrameForNavigation(request.frameName(), openerFrame->document())) {
+             if (request.frameName() != "_self") {
+                 if (Page* page = frame->page())
+@@ -81,7 +81,7 @@
+ 
+     frame->loader().forceSandboxFlags(openerFrame->document()->sandboxFlags());
+ 
+-    if (request.frameName() != "_blank")
++    if (request.frameName() != "_self")
+         frame->tree().setName(request.frameName());
+ 
+     page->chrome().setWindowFeatures(features);
+--- ./third_party/WebKit/Source/core/page/FrameTree.cpp	2013-12-10 12:04:07.000000000 -0500
++++ ./third_party/WebKit/Source/core/page/FrameTree.cpp	2014-02-18 20:39:32.000000000 -0500
+@@ -96,7 +96,7 @@
+ 
+ AtomicString FrameTree::uniqueChildName(const AtomicString& requestedName) const
+ {
+-    if (!requestedName.isEmpty() && !child(requestedName) && requestedName != "_blank")
++    if (!requestedName.isEmpty() && !child(requestedName) && requestedName != "_self")
+         return requestedName;
+ 
+     // Create a repeatable name for a child about to be added to us. The name must be
+@@ -215,8 +215,8 @@
+     if (name == "_parent")
+         return parent() ? parent() : m_thisFrame;
+ 
+-    // Since "_blank" should never be any frame's name, the following just amounts to an optimization.
+-    if (name == "_blank")
++    // Since "_self" should never be any frame's name, the following just amounts to an optimization.
++    if (name == "_self")
+         return 0;
+ 
+     // Search subtree starting with this frame first.
+--- ./third_party/WebKit/Source/core/svg/SVGAElement.cpp	2013-12-10 12:04:40.000000000 -0500
++++ ./third_party/WebKit/Source/core/svg/SVGAElement.cpp	2014-02-18 20:39:32.000000000 -0500
+@@ -175,7 +175,7 @@
+ 
+             String target = this->target();
+             if (target.isEmpty() && fastGetAttribute(XLinkNames::showAttr) == "new")
+-                target = "_blank";
++                target = "_self";
+             event->setDefaultHandled();
+ 
+             Frame* frame = document().frame();
+--- ./third_party/WebKit/Source/testing/plugin/PluginObject.cpp	2013-10-16 20:01:52.000000000 -0400
++++ ./third_party/WebKit/Source/testing/plugin/PluginObject.cpp	2014-02-18 20:39:32.000000000 -0500
+@@ -915,7 +915,7 @@
+ 
+     NPVariant openArgs[2];
+     STRINGZ_TO_NPVARIANT("text/html", openArgs[0]);
+-    STRINGZ_TO_NPVARIANT("_blank", openArgs[1]);
++    STRINGZ_TO_NPVARIANT("_self", openArgs[1]);
+ 
+     NPVariant result;
+     if (!browser->invoke(npp, documentObject, openId, openArgs, 2, &result)) {
+@@ -950,7 +950,7 @@
+ 
+     NPVariant openArgs[2];
+     STRINGZ_TO_NPVARIANT("about:blank", openArgs[0]);
+-    STRINGZ_TO_NPVARIANT("_blank", openArgs[1]);
++    STRINGZ_TO_NPVARIANT("_self", openArgs[1]);
+ 
+     NPVariant result;
+     if (!browser->invoke(npp, windowObject, openId, openArgs, 2, &result)) {
+--- ./third_party/WebKit/Source/web/tests/WebViewTest.cpp	2013-12-10 12:03:27.000000000 -0500
++++ ./third_party/WebKit/Source/web/tests/WebViewTest.cpp	2014-02-18 20:39:32.000000000 -0500
+@@ -1196,7 +1196,7 @@
+     // Make a request that will open a new window
+     WebURLRequest webURLRequest;
+     webURLRequest.initialize();
+-    WebCore::FrameLoadRequest request(0, webURLRequest.toResourceRequest(), WTF::String("_blank"));
++    WebCore::FrameLoadRequest request(0, webURLRequest.toResourceRequest(), WTF::String("_self"));
+     webViewImpl->page()->mainFrame()->loader().load(request);
+     ASSERT_TRUE(client.createdWebView());
+     EXPECT_FALSE(client.didFocusCalled());

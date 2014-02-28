@@ -16,9 +16,9 @@
 #endif
 
 #include "ChromiumBrowserI.h"
-#include "include/cef.h"
+//#include "include/cef.h"
 
-class ObjectWrapper : public CefRefCountWrapper<CefBase>
+class ObjectWrapper : public CefBase
 {
 public:
 	ObjectWrapper(void* data)

@@ -16,7 +16,8 @@
 #endif
 
 #include "ChromiumBrowserI.h"
-#include "include/cef.h"
+//#include "include/cef.h"
+#include "include/cef_v8.h"
 
 class V8HandleBaseWrapper : public CefBase
 {
@@ -53,7 +54,7 @@ public:
 };
 
 
-class JavaScriptExtender : public CefRefCountWrapper<CefV8Handler>
+class JavaScriptExtender : public CefV8Handler
 {
 public:
 	static bool Register(ChromiumDLL::JavaScriptExtenderI* jse);
@@ -62,6 +63,8 @@ public:
 	~JavaScriptExtender();
 
 	virtual bool Execute(const CefString& name, CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception);
+
+	IMPLEMENT_REFCOUNTING(JavaScriptExtender)
 
 private:
 	ChromiumDLL::JavaScriptExtenderI* m_pJSExtender;

@@ -48,6 +48,22 @@ if sys.platform.startswith("win"):
         '-Dchromium_win_pch=1',
         '-Dmsvs_multi_core_compile=1',
         ))
+elif sys.platform == "darwin":
+    gyper.extend((
+        '-Duse_cups=1',
+        '-Duse_gconf=0',
+        '-Duse_gnome_keyring=0',
+        '-Duse_kerberos=0',
+        '-Duse_system_bzip2=1',
+        '-Duse_system_flac=1',
+        '-Duse_system_icu=0',
+        '-Duse_system_libevent=1',
+        '-Duse_system_libwebp=0',
+        '-Duse_system_speex=1',
+        '-Duse_system_v8=0',
+        '-Duse_system_xdg_utils=1',
+        '-Duse_system_zlib=1',
+        ))
 else:
     gyper.extend((
         '-Duse_cups=0',

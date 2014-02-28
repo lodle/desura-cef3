@@ -15,11 +15,11 @@ Index: bindings/v8/custom/V8DOMWindowCustom.cpp
      String windowFeaturesString = toWebCoreStringWithNullOrUndefinedCheck(args[2]);
  
      RefPtr<DOMWindow> openedWindow = impl->open(urlString, frameName, windowFeaturesString, activeWindow, firstWindow);
-Index: html/HTMLAnchorElement.cpp
+Index: third_party/WebKit/Source/core/html/HTMLAnchorElement.cpp
 ===================================================================
---- html/HTMLAnchorElement.cpp	(revision 90274)
-+++ html/HTMLAnchorElement.cpp	(working copy)
-@@ -296,7 +296,10 @@
+--- third_party/WebKit/Source/core/html/HTMLAnchorElement.cpp	(revision 160715)
++++ third_party/WebKit/Source/core/html/HTMLAnchorElement.cpp	(working copy)
+@@ -389,7 +389,10 @@
  
  String HTMLAnchorElement::target() const
  {
@@ -30,7 +30,7 @@ Index: html/HTMLAnchorElement.cpp
 +    return res;
  }
  
- String HTMLAnchorElement::hash() const
+ 
 Index: html/HTMLViewSourceDocument.cpp
 ===================================================================
 --- html/HTMLViewSourceDocument.cpp	(revision 90274)

@@ -71,6 +71,12 @@ typedef struct _cef_window_info_t {
   // Set to true to enable transparent painting.
   bool transparent_painting;
 
+// nat: TODO: figure out how/whether to apply this patch
+//  int m_x;
+//  int m_y;
+//  int m_nWidth;
+//  int m_nHeight;
+
   // Pointer for the new browser widget.
   cef_window_handle_t widget;
 } cef_window_info_t;

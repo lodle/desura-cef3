@@ -97,7 +97,15 @@ void LifeSpanHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 		SetBrowser(NULL);
 }
 
-bool LifeSpanHandler::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser, const CefPopupFeatures& popupFeatures, CefWindowInfo& windowInfo, const CefString& url, CefRefPtr<CefClient>& client, CefBrowserSettings& settings)
+bool LifeSpanHandler::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
+                                    CefRefPtr<CefFrame> frame,
+                                    const CefString& target_url,
+                                    const CefString& target_frame_name,
+                                    const CefPopupFeatures& popupFeatures,
+                                    CefWindowInfo& windowInfo,
+                                    CefRefPtr<CefClient>& client,
+                                    CefBrowserSettings& settings,
+                                    bool* no_javascript_access)
 {
 	//dont show popups unless its the inspector
 	const char* u = url.c_str();
@@ -120,7 +128,7 @@ void LoadHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> f
 		GetCallback()->onPageLoadEnd();
 }
 
-bool LoadHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, ErrorCode errorCode, const CefString& failedUrl, CefString& errorText)
+void LoadHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl)
 {
 	//if no frame its the whole page
 	if (GetCallback())
@@ -148,7 +156,7 @@ bool LoadHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame>
 		if (GetCallback()->onLoadError(errorMsg.c_str(), failedUrl.c_str(), buff, size))
 		{
 			errorText = buff;
-			return true;
+			return;
 		}
 	}
 		
@@ -161,14 +169,13 @@ bool LoadHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame>
 				".</h2></body>"
 				"</html>";
 	errorText = ss.str();
-	return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// RequestHandler
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-bool RequestHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, NavType navType, bool isRedirect)
+bool RequestHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool isRedirect)
 {
 	if (!GetCallback())
 		return false;
@@ -199,7 +206,9 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefSt
 /// KeyboardHandler
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-bool KeyboardHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, KeyEventType type, int code, int modifiers, bool isSystemKey)
+bool KeyboardHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser,
+                                 const CefKeyEvent& event,
+                                 CefEventHandle os_event)
 {
 	if (!GetCallback())
 		return false;
@@ -254,20 +263,6 @@ bool JSDialogHandler::OnJSPrompt(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
 		result = resultBuff;
 
 	return res;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-/// JSBindingHandler
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-void JSBindingHandler::OnJSBinding(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Value> object)
-{
-	setContext(CefV8Context::GetCurrentContext());
-
-	JavaScriptObject obj(object);
-
-	if (GetCallback())
-		GetCallback()->HandleJSBinding(&obj, GetJSFactory());
 }
 
 

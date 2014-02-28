@@ -15,8 +15,18 @@
 #pragma once
 #endif
 
-#include "include/cef.h"
+//#include "include/cef.h"
 #include "ChromiumBrowserI.h"
+#include "include/internal/cef_ptr.h"
+#include "include/cef_client.h"
+#include "include/cef_browser.h"
+#include "include/cef_load_handler.h"
+#include "include/cef_menu_model.h"
+#include "include/cef_request_handler.h"
+#include "include/cef_display_handler.h"
+#include "include/cef_jsdialog_handler.h"
+#include "include/cef_keyboard_handler.h"
+#include "include/cef_life_span_handler.h"
 
 class ChromiumBrowser;
 
@@ -39,7 +49,15 @@ class LifeSpanHandler : public CefLifeSpanHandler, public virtual ChromiumEventI
 public:
 	virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser);
 	virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser);
-	virtual bool OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser, const CefPopupFeatures& popupFeatures, CefWindowInfo& windowInfo, const CefString& url, CefRefPtr<CefClient>& client, CefBrowserSettings& settings);
+	virtual bool OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
+                               CefRefPtr<CefFrame> frame,
+                               const CefString& target_url,
+                               const CefString& target_frame_name,
+                               const CefPopupFeatures& popupFeatures,
+                               CefWindowInfo& windowInfo,
+                               CefRefPtr<CefClient>& client,
+                               CefBrowserSettings& settings,
+                               bool* no_javascript_access);
 };
 
 
@@ -52,7 +70,11 @@ class LoadHandler : public CefLoadHandler, public virtual ChromiumEventInfoI
 public:
 	virtual void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame);
 	virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode);
-	virtual bool OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, ErrorCode errorCode, const CefString& failedUrl, CefString& errorText);
+	virtual void OnLoadError(CefRefPtr<CefBrowser> browser,
+                             CefRefPtr<CefFrame> frame,
+                             ErrorCode errorCode,
+                             const CefString& errorText,
+                             const CefString& failedUrl);
 };
 
 
@@ -63,7 +85,7 @@ public:
 class RequestHandler : public CefRequestHandler, public virtual ChromiumEventInfoI
 {
 public:
-	virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, NavType navType, bool isRedirect);
+	virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool isRedirect);
 };
 
 
@@ -85,17 +107,9 @@ public:
 class KeyboardHandler : public CefKeyboardHandler, public virtual ChromiumEventInfoI
 {
 public:
-	virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser, KeyEventType type, int code, int modifiers, bool isSystemKey);
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-/// MenuHandler
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-class MenuHandler : public CefMenuHandler, public virtual ChromiumEventInfoI
-{
-public:
-	virtual bool OnBeforeMenu(CefRefPtr<CefBrowser> browser, const MenuInfo& menuInfo);
+	virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser,
+                            const CefKeyEvent& event,
+                            CefEventHandle os_event);
 };
 
 
@@ -111,26 +125,6 @@ public:
 	virtual bool OnJSPrompt(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, const CefString& defaultValue, bool& retval, CefString& result);
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////
-/// JSBindingHandler
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-class JSBindingHandler : public CefJSBindingHandler, public virtual ChromiumEventInfoI
-{
-public:
-	virtual void OnJSBinding(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Value> object);
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-/// WinEventHandler
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-class WinEventHandler : public CefWinEventHandler, public virtual ChromiumEventInfoI
-{
-public:
-	virtual void OnWndProc(CefRefPtr<CefBrowser> browser, int message, int wparam, int lparam);
-};
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// ChromiumBrowserEvents
@@ -144,10 +138,7 @@ class ChromiumBrowserEvents :
 	, public RequestHandler
 	, public DisplayHandler
 	, public KeyboardHandler
-	, public MenuHandler
 	, public JSDialogHandler
-	, public JSBindingHandler
-	, public WinEventHandler
 {
 public:
 	ChromiumBrowserEvents(ChromiumBrowser* pParent);
@@ -165,10 +156,7 @@ public:
 	virtual CefRefPtr<CefRequestHandler>	GetRequestHandler()		{ return (CefRequestHandler*)this; }
 	virtual CefRefPtr<CefDisplayHandler>	GetDisplayHandler()		{ return (CefDisplayHandler*)this; }
 	virtual CefRefPtr<CefKeyboardHandler>	GetKeyboardHandler()	{ return (CefKeyboardHandler*)this; }
-	virtual CefRefPtr<CefMenuHandler>		GetMenuHandler()		{ return (CefMenuHandler*)this; }
 	virtual CefRefPtr<CefJSDialogHandler>	GetJSDialogHandler()	{ return (CefJSDialogHandler*)this; }
-	virtual CefRefPtr<CefJSBindingHandler>	GetJSBindingHandler()	{ return (CefJSBindingHandler*)this; }
-	virtual CefRefPtr<CefWinEventHandler>	GetWinEventHandler()	{ return (CefWinEventHandler*)this; }
 
 private:
 	CefRefPtr<CefBrowser> m_Browser;

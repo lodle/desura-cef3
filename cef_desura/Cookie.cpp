@@ -10,7 +10,8 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include "ChromiumBrowserI.h"
-#include "include/cef.h"
+//#include "include/cef.h"
+#include "include/internal/cef_types_wrappers.h" // CefCookie
 
 class Cookie : public ChromiumDLL::CookieI
 {
@@ -49,7 +50,7 @@ public:
 	CefCookie m_rCookie;
 };
 
-class CookieTask : public CefRefCountWrapper<CefTask>
+class CookieTask : public CefTask
 {
 public:
 	CookieTask(const char* url, CefCookie &cookie)
@@ -73,7 +74,7 @@ public:
 		m_bDel = true;
 	}
 
-	virtual void Execute(CefThreadId threadId)
+	virtual void Execute()
 	{
 		if (m_szName.size())
 			CefDeleteCookies(m_szUrl.c_str(), m_szName.c_str());

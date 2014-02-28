@@ -16,10 +16,11 @@
 #endif
 
 #include "ChromiumBrowserI.h"
-#include "include/cef.h"
+//#include "include/cef.h"
+#include "include/cef_response.h"
+#include "include/cef_resource_handler.h"
 
-
-class SchemeExtender : public CefRefCountWrapper<CefSchemeHandler>, public ChromiumDLL::SchemeCallbackI
+class SchemeExtender : public CefResourceHandler, public ChromiumDLL::SchemeCallbackI
 {
 public:
 	static bool Register(ChromiumDLL::SchemeExtenderI* se);
@@ -27,12 +28,13 @@ public:
 	SchemeExtender(ChromiumDLL::SchemeExtenderI* se);
 	~SchemeExtender();
 
-
-	virtual bool ProcessRequest(CefRefPtr<CefRequest> request, CefString& redirectUrl, CefRefPtr<CefSchemeHandlerCallback> callback);
+	virtual bool ProcessRequest(CefRefPtr<CefRequest> request, CefRefPtr<CefCallback> callback);
 	virtual void Cancel();
 
-	virtual void GetResponseHeaders(CefRefPtr<CefResponse> response, int64& response_length);
-	virtual bool ReadResponse(void* data_out, int bytes_to_read, int& bytes_read, CefRefPtr<CefSchemeHandlerCallback> callback);
+	virtual void GetResponseHeaders(CefRefPtr<CefResponse> response,
+                                    int64& response_length,
+                                    CefString& redirectUrl);
+	virtual bool ReadResponse(void* data_out, int bytes_to_read, int& bytes_read, CefRefPtr<CefCallback> callback);
 
 	virtual void responseReady();
 	virtual void dataReady();
@@ -40,7 +42,7 @@ public:
 
 private:
 	ChromiumDLL::SchemeExtenderI* m_pSchemeExtender;
-	CefRefPtr<CefSchemeHandlerCallback> m_Callback;
+	CefRefPtr<CefCallback> m_Callback;
 };
 
 
