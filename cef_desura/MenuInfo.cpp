@@ -11,39 +11,55 @@
 
 #include "MenuInfo.h"
 
-ChromiumMenuItem::ChromiumMenuItem(CefMenuHandler::MenuItem item)
+ChromiumMenuItem::ChromiumMenuItem(CefMenuModel::MenuItemType item)
 {
 	m_MenuItem = item;
 }
 
 int ChromiumMenuItem::getAction()
 {
+/*==========================================================================*|
 	return m_MenuItem.action;
+|*==========================================================================*/
+    return 0;
 }
 
 int ChromiumMenuItem::getType()
 {
+/*==========================================================================*|
 	return m_MenuItem.type;
+|*==========================================================================*/
+    return 0;
 }
 
 const char* ChromiumMenuItem::getLabel()
 {
+/*==========================================================================*|
 	return m_MenuItem.label.str;
+|*==========================================================================*/
+    return "";
 }
 
 bool ChromiumMenuItem::isEnabled()
 {
+/*==========================================================================*|
 	return m_MenuItem.enabled?true:false;
+|*==========================================================================*/
+    return false;
 }
 
 bool ChromiumMenuItem::isChecked()
 {
+/*==========================================================================*|
 	return m_MenuItem.checked?true:false;
+|*==========================================================================*/
+    return false;
 }
 
 
 
 
+/*==========================================================================*|
 ChromiumMenuInfo::ChromiumMenuInfo(CefMenuHandler::MenuInfo info, MenuHandle_t hwnd)
 {
 	m_MenuInfo = info;
@@ -123,3 +139,4 @@ ChromiumDLL::ChromiumMenuItemI* ChromiumMenuInfo::getCustomItem(size_t index)
 
 	return &m_vMenuItems[index];
 }
+|*==========================================================================*/

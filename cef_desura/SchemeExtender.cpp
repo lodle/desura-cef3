@@ -13,6 +13,8 @@
 #include "SchemeRequest.h"
 #include "SchemePost.h"
 
+#include "include/cef_scheme.h"
+
 #include <map>
 #include <algorithm>
 
@@ -42,7 +44,9 @@ public:
 		p.second->destroy();
 	}
 
-	CefRefPtr<CefResourceHandler> Create(const CefString& scheme_name, CefRefPtr<CefRequest> request)
+	CefRefPtr<CefResourceHandler> Create(CefRefPtr<CefBrowser>, CefRefPtr<CefFrame>,
+										 const CefString& scheme_name,
+										 CefRefPtr<CefRequest> request)
 	{
 		std::string url = request->GetURL();
 		std::vector<size_t> slashes;
@@ -75,6 +79,8 @@ public:
 		return CefRegisterSchemeHandlerFactory(se->getSchemeName(), se->getHostName(), this);
 	}
 
+	IMPLEMENT_REFCOUNTING(SchemeHandlerFactory);
+
 private:
 	std::map<std::string, ChromiumDLL::SchemeExtenderI*> m_mSchemeMap;
 };
@@ -99,7 +105,8 @@ bool SchemeExtender::Register(ChromiumDLL::SchemeExtenderI* se)
 
 
 
-SchemeExtender::SchemeExtender(ChromiumDLL::SchemeExtenderI* se)
+SchemeExtender::SchemeExtender(ChromiumDLL::SchemeExtenderI* se):
+	m_redirect(false)
 {
 	m_pSchemeExtender = se;
 
@@ -123,16 +130,8 @@ bool SchemeExtender::ProcessRequest(CefRefPtr<CefRequest> request, CefRefPtr<Cef
 
 	SchemeRequest r(request);
 
-	bool redirect = false;
-	bool res = m_pSchemeExtender->processRequest(&r, &redirect);
-
-	if (redirect)
-	{
-		const char *szRUrl = m_pSchemeExtender->getRedirectUrl();
-
-		if (szRUrl)
-			redirectUrl.FromASCII(szRUrl);
-	}
+	// capture redirect flag in bool member for GetResponseHeaders()
+	bool res = m_pSchemeExtender->processRequest(&r, &m_redirect);
 
 	return res;
 }
@@ -149,6 +148,18 @@ void SchemeExtender::GetResponseHeaders(CefRefPtr<CefResponse> response, int64& 
 {
 	if (!m_pSchemeExtender)
 		return;
+
+	// nat: moved this stanza from ProcessRequest() when redirectUrl param
+	// moved from base-class ProcessRequest() method to GetResponseHeaders()
+	// method
+	if (m_redirect)
+	{
+		const char *szRUrl = m_pSchemeExtender->getRedirectUrl();
+
+		if (szRUrl)
+			redirectUrl.FromASCII(szRUrl);
+	}
+	// end migrated code
 
 	response_length = m_pSchemeExtender->getResponseSize();
 	const char* mime = m_pSchemeExtender->getResponseMimeType();
@@ -168,14 +179,20 @@ bool SchemeExtender::ReadResponse(void* data_out, int bytes_to_read, int& bytes_
 
 void SchemeExtender::responseReady()
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_Callback.get())
 		m_Callback->HeadersAvailable();
+|*==========================================================================*/
 }
 
 void SchemeExtender::dataReady()
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_Callback.get())
 		m_Callback->BytesAvailable();
+|*==========================================================================*/
 }
 
 void SchemeExtender::cancel()

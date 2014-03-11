@@ -40,9 +40,12 @@ public:
 	virtual void dataReady();
 	virtual void cancel();
 
+	IMPLEMENT_REFCOUNTING(SchemeExtender);
+
 private:
 	ChromiumDLL::SchemeExtenderI* m_pSchemeExtender;
 	CefRefPtr<CefCallback> m_Callback;
+	bool m_redirect;
 };
 
 

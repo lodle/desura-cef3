@@ -17,6 +17,8 @@
 
 #include "ChromiumBrowserI.h"
 //#include "include/cef.h"
+#include "include/internal/cef_ptr.h"
+#include "include/cef_request.h"
 
 class SchemeRequest : public ChromiumDLL::SchemeRequestI
 {

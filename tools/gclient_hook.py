@@ -81,7 +81,7 @@ else:
         '-Duse_system_speex=1',
         '-Duse_system_v8=0',
         '-Duse_system_xdg_utils=1',
-        '-Duse_system_yasm=1',
+        '-Duse_system_yasm=0',
         '-Duse_system_zlib=1',
         ))
 

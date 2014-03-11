@@ -82,7 +82,7 @@ ChromiumDLL::JSObjHandle JavaScriptFactory::CreateString(const char* value)
 
 ChromiumDLL::JSObjHandle JavaScriptFactory::CreateArray()
 {
-	return new JavaScriptObject(CefV8Value::CreateArray());
+	return new JavaScriptObject(CefV8Value::CreateArray(0));
 }
 
 ChromiumDLL::JSObjHandle JavaScriptFactory::CreateObject()
@@ -93,7 +93,11 @@ ChromiumDLL::JSObjHandle JavaScriptFactory::CreateObject()
 ChromiumDLL::JSObjHandle JavaScriptFactory::CreateObject(void* userData)
 {
 	CefBase* base = new ObjectWrapper(userData);
-	return new JavaScriptObject(CefV8Value::CreateObject(CefRefPtr<CefBase>(base)));
+	// per Mark 2014-03-10: first create an object with no accessor
+	CefRefPtr<CefV8Value> object = CefV8Value::CreateObject(NULL);
+	// then set its UserData
+	object->SetUserData(CefRefPtr<CefBase>(base));
+	return new JavaScriptObject(object);
 }
 
 ChromiumDLL::JSObjHandle JavaScriptFactory::CreateFunction(const char* name, ChromiumDLL::JavaScriptExtenderI* handler)

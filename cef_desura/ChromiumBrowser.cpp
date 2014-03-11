@@ -302,7 +302,13 @@ void ChromiumBrowser::initCallback(const std::string& defaultUrl)
 	CefWindowInfo winInfo;
 	winInfo.SetAsChild(GTK_WIDGET(m_hFormHandle));
 
-	m_pBrowser = CefBrowser::CreateBrowserSync(winInfo, m_rEventHandler, defaultUrl.c_str(), getBrowserDefaults());
+	m_pBrowser = CefBrowserHost::CreateBrowserSync(winInfo, m_rEventHandler, defaultUrl.c_str(), getBrowserDefaults(),
+                                                   // nat: CreateBrowserSync()
+                                                   // now requires a
+                                                   // CefRequestContext. I do
+                                                   // not know what to use for
+                                                   // that.
+                                                   CefRefPtr<CefRequestContext>());
 	g_signal_connect(GTK_WIDGET(m_hFormHandle), "button-press-event", G_CALLBACK(gtkFocus), this);
 	gtk_widget_show_all(GTK_WIDGET(m_hFormHandle));
 }
@@ -443,7 +449,7 @@ void ChromiumBrowser::executeJScript(const char* code, const char* scripturl, in
 void ChromiumBrowser::onFocus()
 {
 	if (m_pBrowser)
-		m_pBrowser->SetFocus(true);
+		m_pBrowser->GetHost()->SetFocus(true);
 }
 
 #if defined(_WIN32)
@@ -514,32 +520,44 @@ void ChromiumBrowser::setBrowser(CefBrowser* browser)
 
 void ChromiumBrowser::showInspector()
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_pBrowser)
 		m_pBrowser->ShowDevTools();
+|*==========================================================================*/
 }
 
 void ChromiumBrowser::hideInspector()
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_pBrowser)
 		m_pBrowser->CloseDevTools();
+|*==========================================================================*/
 }
 
 void ChromiumBrowser::inspectElement(int x, int y)
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_pBrowser)
 		m_pBrowser->InspectElement(x, y);
+|*==========================================================================*/
 }
 
 void ChromiumBrowser::scroll(int x, int y, int delta, unsigned int flags)
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_pBrowser)
 		m_pBrowser->MouseWheelEvent(x, y, delta, flags);
+|*==========================================================================*/
 }
 
 int* ChromiumBrowser::getBrowserHandle()
 {
 	if (m_pBrowser)
-		return (int*)m_pBrowser->GetWindowHandle();
+		return (int*)m_pBrowser->GetHost()->GetWindowHandle();
 
 	return 0;
 }

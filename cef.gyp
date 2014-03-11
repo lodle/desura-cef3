@@ -1191,7 +1191,7 @@
                     '../build/linux/system.gyp:gtk',
                 ],
                 'variables': {
-                    'repack_path': '../tools/data_pack/repack.py',
+                    'repack_path': '../tools/grit/grit/format/repack.py',
                   },
                   'actions': [
                     {
@@ -1201,10 +1201,10 @@
                       'variables': {
                         'pak_inputs': [
                           '<(SHARED_INTERMEDIATE_DIR)/net/net_resources.pak',
-                          '<(SHARED_INTERMEDIATE_DIR)/ui/gfx/gfx_resources.pak',
-                          '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_chromium_resources.pak',
+                          ## '<(SHARED_INTERMEDIATE_DIR)/ui/gfx/gfx_resources.pak',
+                          ## '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_chromium_resources.pak',
                           '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_strings_en-US.pak',
-                          '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_resources.pak',
+                          '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_resources_200_percent.pak',
                           '<(SHARED_INTERMEDIATE_DIR)/cef/cef_resources.pak',
                         ],
                       },

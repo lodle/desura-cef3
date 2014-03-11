@@ -17,6 +17,7 @@
 
 #include "ChromiumBrowserI.h"
 //#include "include/cef.h"
+#include "include/cef_base.h"
 
 class ObjectWrapper : public CefBase
 {
@@ -30,6 +31,8 @@ public:
 	{
 		return m_pData;
 	}
+
+	IMPLEMENT_REFCOUNTING(ObjectWrapper);
 
 private:
 	void* m_pData;

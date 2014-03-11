@@ -195,7 +195,9 @@ bool JavaScriptObject::setValue(const char* key, ChromiumDLL::JSObjHandle value)
 	if (!jso)
 		return false;
 
-	return m_pObject->SetValue(key, jso->getCefV8());
+	// nat: V8_PROPERTY_ATTRIBUTE_NONE is a guess; CefV8Value::SetValue()
+	// didn't used to require a PropertyAttribute.
+	return m_pObject->SetValue(key, jso->getCefV8(), V8_PROPERTY_ATTRIBUTE_NONE);
 }
 
 bool JavaScriptObject::setValue(int index, ChromiumDLL::JSObjHandle value)
@@ -264,21 +266,16 @@ ChromiumDLL::JSObjHandle JavaScriptObject::executeFunction(ChromiumDLL::JavaScri
 			argList.push_back(NULL);
 	}
 
-	CefRefPtr<CefV8Value> retval;
-	CefString exception;
+	CefRefPtr<CefV8Value> retval = m_pObject->ExecuteFunctionWithContext(context->getCefV8(), jso?jso->getCefV8():NULL, argList);
 
-	bool res = m_pObject->ExecuteFunctionWithContext(context->getCefV8(), jso?jso->getCefV8():NULL, argList, retval, exception);
-
-	if (!res)
+	if (!retval)
 	{
-		if (exception.c_str())
-			return GetJSFactory()->CreateException(exception.c_str());
+		CefRefPtr<CefV8Exception> exception = m_pObject->GetException();
+		if (exception)
+			return GetJSFactory()->CreateException(exception->GetMessage().c_str());
 
 		return GetJSFactory()->CreateException("failed to run function");
 	}
-
-	if (!retval)
-		return NULL;
 
 	return new JavaScriptObject(retval);
 }

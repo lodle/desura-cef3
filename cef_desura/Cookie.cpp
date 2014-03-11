@@ -11,6 +11,8 @@
 
 #include "ChromiumBrowserI.h"
 //#include "include/cef.h"
+#include "include/cef_task.h"
+#include "include/cef_cookie.h"
 #include "include/internal/cef_types_wrappers.h" // CefCookie
 
 class Cookie : public ChromiumDLL::CookieI
@@ -76,10 +78,11 @@ public:
 
 	virtual void Execute()
 	{
+		CefRefPtr<CefCookieManager> cookiemgr = CefCookieManager::GetGlobalManager();
 		if (m_szName.size())
-			CefDeleteCookies(m_szUrl.c_str(), m_szName.c_str());
+			cookiemgr->DeleteCookies(m_szUrl.c_str(), m_szName.c_str());
 		else
-			CefSetCookie(m_szUrl.c_str(), m_szCookie);
+			cookiemgr->SetCookie(m_szUrl.c_str(), m_szCookie);
 	}
 
 	bool m_bDel;
@@ -88,6 +91,7 @@ public:
 	std::string m_szName;
 
 	CefCookie m_szCookie;
+	IMPLEMENT_REFCOUNTING(CookieTask);
 };
 
 extern "C"

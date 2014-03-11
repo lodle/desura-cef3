@@ -17,6 +17,8 @@
 
 #include "ChromiumBrowserI.h"
 //#include "include/cef.h"
+#include "include/cef_v8.h"
+#include "include/internal/cef_ptr.h"
 
 class JavaScriptContext : public ChromiumDLL::JavaScriptContextI
 {

@@ -111,7 +111,20 @@ void SchemeRequest::setHeaderItem(const char* key, const char* data)
 	CefRequest::HeaderMap map;
 	m_rRequest->GetHeaderMap(map);
 
-	map[key] = data;
+	// CefRequest::HeaderMap is now a std::multimap. multimap has no
+	// operator[]. But if the specified key already exists, we want to replace
+	// it.
+	CefRequest::HeaderMap::iterator found = map.find(key);
+	if (found != map.end())
+	{
+		// we already have an entry for this key; update it
+		found->second = data;
+	}
+	else
+	{
+		// we don't recognize this key, insert a whole new entry
+		map.insert(CefRequest::HeaderMap::value_type(key, data));
+	}
 
 	m_rRequest->SetHeaderMap(map);
 }

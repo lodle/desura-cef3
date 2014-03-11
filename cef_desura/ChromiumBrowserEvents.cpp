@@ -93,7 +93,8 @@ void LifeSpanHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 
 void LifeSpanHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
-	if (GetBrowser() && GetBrowser()->GetWindowHandle() == browser->GetWindowHandle())
+	if (GetBrowser() && GetBrowser()->GetHost()->GetWindowHandle() == 
+		browser->GetHost()->GetWindowHandle())
 		SetBrowser(NULL);
 }
 
@@ -108,7 +109,7 @@ bool LifeSpanHandler::OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
                                     bool* no_javascript_access)
 {
 	//dont show popups unless its the inspector
-	const char* u = url.c_str();
+	const char* u = target_url.c_str();
 	return (!u || std::string(u).find("resources/inspector/devtools.") == std::string::npos);
 }
 
@@ -155,7 +156,10 @@ void LoadHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame>
 
 		if (GetCallback()->onLoadError(errorMsg.c_str(), failedUrl.c_str(), buff, size))
 		{
+/*==========================================================================*|
+			// nat: no longer valid
 			errorText = buff;
+|*==========================================================================*/
 			return;
 		}
 	}
@@ -168,7 +172,10 @@ void LoadHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame>
 				" failed with error code " << static_cast<int>(errorCode) <<
 				".</h2></body>"
 				"</html>";
+/*==========================================================================*|
+	// nat: no longer valid
 	errorText = ss.str();
+|*==========================================================================*/
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,7 +220,8 @@ bool KeyboardHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 	if (!GetCallback())
 		return false;
 
-	return GetCallback()->onKeyEvent((ChromiumDLL::KeyEventType)type, code, modifiers, isSystemKey);
+	return GetCallback()->onKeyEvent((ChromiumDLL::KeyEventType)event.type,
+									 event.native_key_code, event.modifiers, event.is_system_key);
 }
 
 
@@ -221,6 +229,7 @@ bool KeyboardHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 /// MenuHandler
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+/*==========================================================================*|
 bool MenuHandler::OnBeforeMenu(CefRefPtr<CefBrowser> browser, const MenuInfo& menuInfo)
 {
 	if (!GetCallback())
@@ -229,6 +238,7 @@ bool MenuHandler::OnBeforeMenu(CefRefPtr<CefBrowser> browser, const MenuInfo& me
 	ChromiumMenuInfo cmi(menuInfo, GetBrowser()->GetWindowHandle());
 	return GetCallback()->HandlePopupMenu(&cmi);
 }
+|*==========================================================================*/
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -265,29 +275,6 @@ bool JSDialogHandler::OnJSPrompt(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
 	return res;
 }
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////
-/// WinEventHandler
-/////////////////////////////////////////////////////////////////////////////////////////////
-
-void WinEventHandler::OnWndProc(CefRefPtr<CefBrowser> browser, int message, int wparam, int lparam)
-{
-#ifdef OS_WIN
-	if (GetCallback())
-		GetCallback()->HandleWndProc(message, wparam, lparam);
-
-	if (message != WM_XBUTTONDOWN)
-		return;
-
-	int fwButton = GET_XBUTTON_WPARAM(wparam);
-
-	if (fwButton == XBUTTON1)
-		browser->GoBack();
-	else if (fwButton == XBUTTON2)
-		browser->GoForward();
-#endif
-}
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// ChromiumBrowserEvents

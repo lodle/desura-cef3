@@ -17,6 +17,7 @@
 
 #include "ChromiumBrowserI.h"
 //#include "include/cef.h"
+#include "include/cef_v8.h"
 
 class V8ValueBaseWrapper : public CefBase
 {
@@ -27,6 +28,7 @@ public:
 	}
 
 	CefRefPtr<CefV8Value> m_pObject;
+	IMPLEMENT_REFCOUNTING(V8ValueBaseWrapper);
 };
 
 
