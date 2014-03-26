@@ -22,6 +22,8 @@
 #include "JavaScriptContext.h"
 #include "ChromiumBrowserEvents.h"
 
+#include <map>
+
 #ifdef OS_LINUX
 #include <gtk/gtk.h>
 #endif
@@ -379,7 +381,8 @@ public:
 	std::string m_szDefaultUrl;
 };
 
-void ChromiumBrowser::init(const char *defaultUrl)
+void ChromiumBrowser::init(const char *defaultUrl,
+						   bool /*offScreen*/, int /*width*/, int /*height*/)
 {
 	CefPostTask(TID_UI, new CreateTask(this, defaultUrl));
 }
@@ -675,50 +678,108 @@ ChromiumRenderer::ChromiumRenderer(WIN_HANDLE handle, const char* defaultUrl, in
 
 void ChromiumRenderer::setWindowSize(int width, int height)
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_pBrowser)
 		m_pBrowser->SetSize(PET_VIEW, width, height);
+|*==========================================================================*/
 }
 
 void ChromiumRenderer::getWindowSize(int &width, int &height)
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_pBrowser)
 		m_pBrowser->GetSize(PET_VIEW, width, height);
+|*==========================================================================*/
 }
 
 void ChromiumRenderer::renderToBuffer(void* pBuffer, unsigned int width, unsigned int height)
 {
+/*==========================================================================*|
+	// nat: no such method
 	if (m_pBrowser)
 		m_pBrowser->GetImage(PET_VIEW, width, height, pBuffer);
+|*==========================================================================*/
 }
 
 void ChromiumRenderer::onMouseClick(int x, int y, ChromiumDLL::MouseButtonType type, bool mouseUp, int clickCount)
 {
 	if (m_pBrowser)
-		m_pBrowser->SendMouseClickEvent(x, y, (CefBrowser::MouseButtonType)type, mouseUp, clickCount);
+	{
+		CefMouseEvent event;
+		event.x = x;
+		event.y = y;
+		m_pBrowser->GetHost()->SendMouseClickEvent(event, (CefBrowserHost::MouseButtonType)type,
+												   mouseUp, clickCount);
+	}
 }
 
 void ChromiumRenderer::onMouseMove(int x, int y, bool mouseLeave)
 {
 	if (m_pBrowser)
-		m_pBrowser->SendMouseMoveEvent(x, y, mouseLeave);
+	{
+		CefMouseEvent event;
+		event.x = x;
+		event.y = y;
+		m_pBrowser->GetHost()->SendMouseMoveEvent(event, mouseLeave);
+	}
 }
+
+// cef_key_event_type_t is NOT THE SAME as ChromiumDLL::KeyType
+class KeyTypeFinder
+{
+public:
+	KeyTypeFinder()
+	{
+		mMap[ChromiumDLL::KT_KEYUP]   = KEYEVENT_KEYUP;
+		mMap[ChromiumDLL::KT_KEYDOWN] = KEYEVENT_KEYDOWN;
+		mMap[ChromiumDLL::KT_CHAR]    = KEYEVENT_CHAR;
+	}
+
+	cef_key_event_type_t find(ChromiumDLL::KeyType type) const
+	{
+		KeyTypeMap::const_iterator found = mMap.find(type);
+		if (found != mMap.end())
+			return found->second;
+
+		return cef_key_event_type_t(); // invalid
+	}
+
+private:
+	typedef std::map<ChromiumDLL::KeyType, cef_key_event_type_t> KeyTypeMap;
+	KeyTypeMap mMap;
+};
+static const KeyTypeFinder keyfinder;
 
 void ChromiumRenderer::onKeyPress(ChromiumDLL::KeyType type, int key, int modifiers, bool sysChar, bool imeChar)
 {
 	if (m_pBrowser)
-		m_pBrowser->SendKeyEvent((CefBrowser::KeyType)type, key, modifiers, sysChar, imeChar);
+	{
+		CefKeyEvent event;
+		event.type = keyfinder.find(type);
+		// BUG: we probably also need to translate modifier bits, but I find
+		// no definition for the ChromiumDLL modifier bits.
+		event.modifiers = modifiers;
+		// BUG: no idea what to set for windows_key_code
+		event.native_key_code = key;
+		event.is_system_key = sysChar;
+		// BUG: no idea how to set character or unmodified_character
+		// BUG: no idea what to do about imeChar
+		m_pBrowser->GetHost()->SendKeyEvent(event);
+	}
 }
 
 void ChromiumRenderer::onFocus(bool setFocus)
 {
 	if (m_pBrowser)
-		m_pBrowser->SendFocusEvent(setFocus);
+		m_pBrowser->GetHost()->SendFocusEvent(setFocus);
 }
 
 void ChromiumRenderer::onCaptureLost()
 {
 	if (m_pBrowser)
-		m_pBrowser->SendCaptureLostEvent();
+		m_pBrowser->GetHost()->SendCaptureLostEvent();
 }
 
 void ChromiumRenderer::setBrowser(CefBrowser* browser)
