@@ -137,19 +137,27 @@ public:
 			return true;
 
 		CefSettings settings;
+		CefMainArgs args;
+		CefRefPtr<CefApp> app;
+
+		// It turns out to be unreasonably difficult to discover an internal
+		// cross-platform API to obtain the pathname of the current executable.
+		// Otherwise I would concatenate its directory name with this filename.
+		static const char cefclient[] = "cefclient";
+		cef_string_copy(cefclient, strlen(cefclient), &settings.browser_subprocess_path);
 
 		cef_string_copy(cachePath, strlen(cachePath), &settings.cache_path);
 		cef_string_copy(userAgent, strlen(userAgent), &settings.user_agent);
 
 		settings.multi_threaded_message_loop = threaded;
 
-		if (!CefInitialize(settings))
+		if (!CefInitialize(args, settings, app))
 			return false;
 
 #if defined(_WIN32)
-		CefRegisterFlashPlugin("gcswf32.dll");
+		CefAddWebPluginPath("gcswf32.dll");
 #else
-		CefRegisterFlashPlugin("libdesura_flashwrapper.so");
+		CefAddWebPluginPath("libdesura_flashwrapper.so");
 #endif
 
 		m_bInit = true;
