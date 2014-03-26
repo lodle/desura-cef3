@@ -20,3 +20,18 @@ git-svn-id: @1503
 
 where '1503' represents the Subversion revision number of the updated Google
 code.
+=======
+
+Build Windows
+-----------
+
+ * Get depot tools from https://src.chromium.org/svn/trunk/tools/depot_tools.zip and add it to your path
+ * In a new folder run "fetch --nohooks chromium --nosvn=True"
+ * cd to the source dir
+ * run "gclient sync --revision src@[revision] --jobs 8 --force" (replace revision with the value from CHROMIUM_BUILD_COMPATIBILITY.txt)
+ * Clone this repo into src/cef
+ * run "set GYP_GENERATORS='ninja'"
+ * cd src/cef
+ * run "cef_create_projects.bat"
+ * cd up a dir
+ * run "ninja -C out/Debug cef_desura"

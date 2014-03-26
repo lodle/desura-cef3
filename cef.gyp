@@ -618,6 +618,7 @@
           'message': 'Generating about:credits.',
         },
       ],
+<<<<<<< HEAD
       'conditions': [
         [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
            'dependencies' : [
@@ -627,6 +628,8 @@
            ],
         }],
       ],
+=======
+>>>>>>> 47c674862fd6bb8082e32764075f013e8534db0c
     },
     {
       # Create the pack file for CEF resources.
@@ -1110,6 +1113,7 @@
         }],
       ],
     },
+<<<<<<< HEAD
     {
         'target_name': 'cef_desura',
         'type': 'shared_library',
@@ -1227,6 +1231,8 @@
             }],
         ],
     },
+=======
+>>>>>>> 47c674862fd6bb8082e32764075f013e8534db0c
   ],
   'conditions': [
     ['os_posix==1 and OS!="mac" and OS!="android" and gcc_version>=46', {

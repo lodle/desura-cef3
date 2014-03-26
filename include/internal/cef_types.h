@@ -1261,10 +1261,13 @@ enum cef_menu_id_t {
   MENU_ID_PRINT               = 131,
   MENU_ID_VIEW_SOURCE         = 132,
 
+<<<<<<< HEAD
   MENU_ID_ZOOM_IN             = 133,
   MENU_ID_ZOOM_OUT            = 134,
   MENU_ID_ZOOM_NORMAL         = 135,
 
+=======
+>>>>>>> 47c674862fd6bb8082e32764075f013e8534db0c
   // All user-defined menu IDs should come between MENU_ID_USER_FIRST and
   // MENU_ID_USER_LAST to avoid overlapping the Chromium and CEF ID ranges
   // defined in the tools/gritsettings/resource_ids file.
