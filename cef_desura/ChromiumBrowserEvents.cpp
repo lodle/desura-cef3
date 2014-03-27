@@ -238,6 +238,33 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefSt
 /// KeyboardHandler
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+// cef_key_event_type_t is NOT THE SAME as ChromiumDLL::KeyType
+class KeyTypeFinder
+{
+public:
+	KeyTypeFinder()
+	{
+		mMap[KEYEVENT_RAWKEYDOWN] = ChromiumDLL::KEYEVENT_RAWKEYDOWN;
+		mMap[KEYEVENT_KEYDOWN]    = ChromiumDLL::KEYEVENT_KEYDOWN;
+		mMap[KEYEVENT_KEYUP]      = ChromiumDLL::KEYEVENT_KEYUP;
+		mMap[KEYEVENT_CHAR]       = ChromiumDLL::KEYEVENT_CHAR;
+	}
+
+	ChromiumDLL::KeyEventType find(cef_key_event_type_t type) const
+	{
+		KeyTypeMap::const_iterator found = mMap.find(type);
+		if (found != mMap.end())
+			return found->second;
+
+		return ChromiumDLL::KeyEventType(); // invalid
+	}
+
+private:
+	typedef std::map<cef_key_event_type_t, ChromiumDLL::KeyEventType> KeyTypeMap;
+	KeyTypeMap mMap;
+};
+static const KeyTypeFinder keyfinder;
+
 bool KeyboardHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser,
                                  const CefKeyEvent& event,
                                  CefEventHandle os_event)
@@ -245,7 +272,7 @@ bool KeyboardHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 	if (!GetCallback())
 		return false;
 
-	return GetCallback()->onKeyEvent((ChromiumDLL::KeyEventType)event.type,
+	return GetCallback()->onKeyEvent(keyfinder.find(event.type),
 									 event.native_key_code, event.modifiers, event.is_system_key);
 }
 
