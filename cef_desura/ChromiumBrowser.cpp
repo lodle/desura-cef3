@@ -312,7 +312,8 @@ ChromiumBrowser::~ChromiumBrowser()
 	if (cbe)
 	{
 		cbe->setParent(NULL);
-		cbe->setCallBack(NULL);
+		cbe->setCallBack((ChromiumDLL::ChromiumBrowserEventI*)NULL);
+		cbe->setCallBack((ChromiumDLL::ChromiumRendererEventI*)NULL);
 	}
 }
 
@@ -694,6 +695,11 @@ void ChromiumRenderer::getWindowSize(int &width, int &height)
 |*==========================================================================*/
 }
 
+void ChromiumRenderer::renderRectToBuffer(void *pBuffer, unsigned int x, unsigned int y, unsigned int w, unsigned h)
+{
+
+}
+
 void ChromiumRenderer::renderToBuffer(void* pBuffer, unsigned int width, unsigned int height)
 {
 /*==========================================================================*|
@@ -786,4 +792,12 @@ void ChromiumRenderer::setBrowser(CefBrowser* browser)
 {
 	ChromiumBrowser::setBrowser(browser);
 	setWindowSize(m_nDefaultWidth, m_nDefaultHeight);
+}
+
+void ChromiumRenderer::setEventCallback(ChromiumDLL::ChromiumRendererEventI* cbeI)
+{
+	ChromiumBrowserEvents* cbe = (ChromiumBrowserEvents*)m_rEventHandler.get();
+
+	if (cbe)
+		cbe->setCallBack(cbeI);
 }
