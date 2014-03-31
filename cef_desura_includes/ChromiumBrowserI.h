@@ -852,6 +852,8 @@ namespace ChromiumDLL
 
 		virtual void onCursorChange(eCursor cursor)=0;
 
+		virtual bool getViewRect(int &x, int &y, int &w, int &h) = 0;
+
 	protected:
 		virtual ~ChromiumRendererEventI(){}
 	};

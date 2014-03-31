@@ -153,6 +153,10 @@ public:
 
 		settings.multi_threaded_message_loop = threaded;
 
+#ifdef _DEBUG
+		settings.single_process = true;
+#endif
+
 		if (!CefInitialize(args, settings, app))
 			return false;
 
@@ -343,19 +347,19 @@ void ChromiumBrowser::init(const char *defaultUrl, bool offScreen, int width, in
 		height = 500;
 
 	CefWindowInfo winInfo;
-	winInfo.m_hWndParent = m_hFormHandle;
-	winInfo.m_nHeight = width;
-	winInfo.m_nWidth = height;
+	winInfo.parent_window = m_hFormHandle;
+	winInfo.height = width;
+	winInfo.width = height;
 
 	if (offScreen)
-		winInfo.m_bWindowRenderingDisabled = true;
+		winInfo.window_rendering_disabled = true;
 	else
-		winInfo.m_dwStyle =  WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP;
+		winInfo.style = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP;
 
 	const char* name = "DesuraCEFBrowser";
-	cef_string_copy(name, strlen(name), &winInfo.m_windowName);
+	cef_string_copy(name, strlen(name), &winInfo.window_name);
 
-	CefBrowser::CreateBrowser(winInfo, m_rEventHandler, defaultUrl, getBrowserDefaults());
+	CefBrowserHost::CreateBrowser(winInfo, m_rEventHandler, defaultUrl, getBrowserDefaults(), CefRefPtr<CefRequestContext>());
 }
 
 #else
@@ -562,7 +566,7 @@ void ChromiumBrowser::onResize()
 {
 	HWND hWnd = m_hFormHandle;
 
-	if(m_pBrowser && m_pBrowser->GetWindowHandle())
+	if(m_pBrowser && m_pBrowser->GetHost()->GetWindowHandle())
 	{
 		// Resize the browser window and address bar to match the new frame
 		// window size
@@ -570,7 +574,7 @@ void ChromiumBrowser::onResize()
 		::GetClientRect(hWnd, &rect);
 
 		HDWP hdwp = BeginDeferWindowPos(1);
-		hdwp = DeferWindowPos(hdwp, m_pBrowser->GetWindowHandle(), NULL,rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,SWP_NOZORDER);
+		hdwp = DeferWindowPos(hdwp, m_pBrowser->GetHost()->GetWindowHandle(), NULL, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, SWP_NOZORDER);
 		EndDeferWindowPos(hdwp);
 	}
 }

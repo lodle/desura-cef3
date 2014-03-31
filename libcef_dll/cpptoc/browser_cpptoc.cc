@@ -16,6 +16,8 @@
 #include "libcef_dll/cpptoc/process_message_cpptoc.h"
 #include "libcef_dll/transfer_util.h"
 
+#include <algorithm>
+
 
 // MEMBER FUNCTIONS - Body may be edited by hand.
 

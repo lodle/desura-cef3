@@ -471,7 +471,7 @@
       'conditions': [
         ['OS=="win" and win_use_allocator_shim==1', {
           'dependencies': [
-            '<(DEPTH)/base/allocator/allocator.gyp:allocator',
+            #'<(DEPTH)/base/allocator/allocator.gyp:allocator',
           ],
         }],
         ['OS=="win"', {
@@ -1161,20 +1161,28 @@
             ],
         },
         'conditions' : [
-            ['OS=="win"', {
-                'dependencies': [
-                        '../breakpad/breakpad.gyp:breakpad_handler',
-                        '../third_party/angle/src/build_angle.gyp:libEGL',
-                        '../third_party/angle/src/build_angle.gyp:libGLESv2',
-                        '../ui/views/views.gyp:views',
-                ],
+			['OS=="win" and win_use_allocator_shim==1', {
+			  'dependencies': [
+				#'<(DEPTH)/base/allocator/allocator.gyp:allocator',
+			  ],
+			}],		
+			['OS=="win"', {
+				'configurations': {
+					'Debug_Base': {
+						'msvs_settings': {
+							'VCLinkerTool': {
+								'LinkIncremental': '<(msvs_large_module_debug_link_mode)',
+							},
+						},
+					},
+				},
                 'sources': [
-                        '$(OutDir)/obj/global_intermediate/webkit/webkit_chromium_resources.rc',
-                        '$(OutDir)/obj/global_intermediate/webkit/webkit_resources.rc',
-                        '$(OutDir)/obj/global_intermediate/webkit/webkit_strings_en-US.rc',
-                        'include/internal/cef_types_win.h',
-                        'include/internal/cef_win.h',
-                        'libcef_dll/libcef_dll.rc',
+					'<@(includes_win)',
+					# TODO(cef): Remove ui_unscaled_resources.rc once custom cursor
+					# resources can be loaded via ResourceBundle. See crbug.com/147663.
+					'<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_resources.rc',
+					'<(SHARED_INTERMEDIATE_DIR)/ui/ui_resources/ui_unscaled_resources.rc',
+					'libcef_dll/libcef_dll.rc',
                 ],
                 'resource_include_dirs': [
                     '$(OutDir)/obj/global_intermediate/webkit',
@@ -1186,46 +1194,12 @@
                 },
             }],
             [ 'OS=="linux" or OS=="freebsd" or OS=="openbsd"', {
-                'dependencies' : [
-                    '<(DEPTH)/build/linux/system.gyp:gtk',
-                    '<(DEPTH)/tools/xdisplaycheck/xdisplaycheck.gyp:xdisplaycheck',
-                    '../build/linux/system.gyp:gtk',
-                ],
-                'variables': {
-                    'repack_path': '../tools/grit/grit/format/repack.py',
-                  },
-                  'actions': [
-                    {
-                      # TODO(mark): Make this work with more languages than the
-                      # hardcoded en-US.
-                      'action_name': 'repack_locale',
-                      'variables': {
-                        'pak_inputs': [
-                          '<(SHARED_INTERMEDIATE_DIR)/net/net_resources.pak',
-                          ## '<(SHARED_INTERMEDIATE_DIR)/ui/gfx/gfx_resources.pak',
-                          ## '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_chromium_resources.pak',
-                          '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_strings_en-US.pak',
-                          '<(SHARED_INTERMEDIATE_DIR)/webkit/webkit_resources_200_percent.pak',
-                          '<(SHARED_INTERMEDIATE_DIR)/cef/cef_resources.pak',
-                        ],
-                      },
-                      'inputs': [
-                        '<(repack_path)',
-                        '<@(pak_inputs)',
-                      ],
-                      'outputs': [
-                        '<(INTERMEDIATE_DIR)/repack/cef_data.pak',
-                      ],
-                      'action': ['python', '<(repack_path)', '<@(_outputs)', '<@(pak_inputs)'],
-                    },
-                  ],
-            }],
-            ['OS=="linux" and linux_use_tcmalloc==1', {
-              'dependencies': [
-               # See http://crbug.com/162998#c4 for why this is needed.
-                '<(DEPTH)/base/allocator/allocator.gyp:allocator',
-              ],
-            }],
+				'dependencies':[
+					'<(DEPTH)/base/allocator/allocator.gyp:allocator',
+					'<(DEPTH)/build/linux/system.gyp:gtk',
+					'<(DEPTH)/build/linux/system.gyp:gtkprint',
+				],
+			}],
         ],
     },
   ],

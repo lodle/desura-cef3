@@ -30,6 +30,12 @@
 
 class ChromiumBrowser;
 
+#ifdef WIN32
+#define OVERRIDE override
+#else
+#define OVERRIDE
+#endif
+
 
 class ChromiumEventInfoI
 {
@@ -48,8 +54,8 @@ public:
 class LifeSpanHandler : public CefLifeSpanHandler, public virtual ChromiumEventInfoI
 {
 public:
-	virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser);
-	virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser);
+	virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
+	virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
 	virtual bool OnBeforePopup(CefRefPtr<CefBrowser> parentBrowser,
                                CefRefPtr<CefFrame> frame,
                                const CefString& target_url,
@@ -58,7 +64,7 @@ public:
                                CefWindowInfo& windowInfo,
                                CefRefPtr<CefClient>& client,
                                CefBrowserSettings& settings,
-                               bool* no_javascript_access);
+							   bool* no_javascript_access) OVERRIDE;
 };
 
 
@@ -69,13 +75,13 @@ public:
 class LoadHandler : public CefLoadHandler, public virtual ChromiumEventInfoI
 {
 public:
-	virtual void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame);
-	virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode);
+	virtual void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame) OVERRIDE;
+	virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) OVERRIDE;
 	virtual void OnLoadError(CefRefPtr<CefBrowser> browser,
                              CefRefPtr<CefFrame> frame,
                              ErrorCode errorCode,
                              const CefString& errorText,
-                             const CefString& failedUrl);
+							 const CefString& failedUrl) OVERRIDE;
 };
 
 
@@ -86,8 +92,10 @@ public:
 class RequestHandler : public CefRequestHandler, public virtual ChromiumEventInfoI
 {
 public:
-	virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool isRedirect);
-	virtual bool GetDownloadHandler(CefRefPtr<CefBrowser> browser, const CefString& mimeType, const CefString& fileName, int64 contentLength, CefRefPtr<CefDownloadHandler>& handler, const CefString& url);
+	virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool isRedirect) OVERRIDE;
+
+	//TODO
+	//virtual bool GetDownloadHandler(CefRefPtr<CefBrowser> browser, const CefString& mimeType, const CefString& fileName, int64 contentLength, CefRefPtr<CefDownloadHandler>& handler, const CefString& url) OVERRIDE;
 };
 
 
@@ -98,10 +106,10 @@ public:
 class DisplayHandler : public CefDisplayHandler, public virtual ChromiumEventInfoI
 {
 public:
-	virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& message, const CefString& source, int line);
-	virtual void OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value, StatusType type);
-	virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title);
-	virtual bool OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text);
+	virtual bool OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefString& message, const CefString& source, int line) OVERRIDE;
+	virtual void OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value) OVERRIDE;
+	virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) OVERRIDE;
+	virtual bool OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text) OVERRIDE;
 };
 
 
@@ -114,7 +122,7 @@ class KeyboardHandler : public CefKeyboardHandler, public virtual ChromiumEventI
 public:
 	virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser,
                             const CefKeyEvent& event,
-                            CefEventHandle os_event);
+							CefEventHandle os_event) OVERRIDE;
 };
 
 
@@ -125,9 +133,7 @@ public:
 class JSDialogHandler : public CefJSDialogHandler, public virtual ChromiumEventInfoI
 {
 public:
-	virtual bool OnJSAlert(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message);
-	virtual bool OnJSConfirm(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, bool& retval);
-	virtual bool OnJSPrompt(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, const CefString& defaultValue, bool& retval, CefString& result);
+
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,8 +143,14 @@ public:
 class RenderHandler : public CefRenderHandler, public virtual ChromiumEventInfoI
 {
 public:
-	virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const CefRect& dirtyRect, const void* buffer);
-	virtual void OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor);
+	virtual void OnPaint(CefRefPtr<CefBrowser> browser,
+		PaintElementType type,
+		const RectList& dirtyRects,
+		const void* buffer,
+		int width, int height) OVERRIDE;
+
+	virtual void OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor) OVERRIDE;
+	virtual bool GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect) OVERRIDE;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////

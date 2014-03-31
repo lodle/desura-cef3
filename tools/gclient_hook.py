@@ -47,6 +47,7 @@ if sys.platform.startswith("win"):
     gyper.extend((
         '-Dchromium_win_pch=1',
         '-Dmsvs_multi_core_compile=1',
+		'-Dwin_use_allocator_shim=0',
         ))
 elif sys.platform == "darwin":
     gyper.extend((

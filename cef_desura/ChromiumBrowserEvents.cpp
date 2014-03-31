@@ -197,28 +197,28 @@ bool RequestHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 	return !GetCallback()->onNavigateUrl(url.c_str(), frame->IsMain());
 }
 
-
-bool RequestHandler::GetDownloadHandler(CefRefPtr<CefBrowser> browser, const CefString& mimeType, const CefString& fileName, int64 contentLength, CefRefPtr<CefDownloadHandler>& handler, const CefString& url)
-{
-	if (!GetCallback())
-		return false;
-
-	if (g_nApiVersion <= 1)
-		return false;
-
-#ifdef CHROMIUM_API_SUPPORTS_V2
-	if (GetCallback()->ApiVersion() <= 1)
-		return false;
-
-	std::string strUrl = url;
-	std::string strMimeType = mimeType;
-
-	static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback())->onDownloadFile(strUrl.c_str(), strMimeType.c_str(), contentLength);
-	return false;
-#else
-	return false;
-#endif
-}
+//
+//bool RequestHandler::GetDownloadHandler(CefRefPtr<CefBrowser> browser, const CefString& mimeType, const CefString& fileName, int64 contentLength, CefRefPtr<CefDownloadHandler>& handler, const CefString& url)
+//{
+//	if (!GetCallback())
+//		return false;
+//
+//	if (g_nApiVersion <= 1)
+//		return false;
+//
+//#ifdef CHROMIUM_API_SUPPORTS_V2
+//	if (GetCallback()->ApiVersion() <= 1)
+//		return false;
+//
+//	std::string strUrl = url;
+//	std::string strMimeType = mimeType;
+//
+//	static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback())->onDownloadFile(strUrl.c_str(), strMimeType.c_str(), contentLength);
+//	return false;
+//#else
+//	return false;
+//#endif
+//}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -233,7 +233,7 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefSt
 	return true;
 }
 
-void DisplayHandler::OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value, StatusType type)
+void DisplayHandler::OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value)
 {
 	if (!GetCallback())
 		return;
@@ -246,7 +246,7 @@ void DisplayHandler::OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefStr
 		return;
 
 	std::string strText = value;
-	static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback())->onStatus(strText.c_str(), (ChromiumDLL::StatusType)type);
+	static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback())->onStatus(strText.c_str(), ChromiumDLL::STATUSTYPE_TEXT);
 #endif
 }
 
@@ -349,46 +349,54 @@ bool MenuHandler::OnBeforeMenu(CefRefPtr<CefBrowser> browser, const MenuInfo& me
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// JSDialogHandler
 /////////////////////////////////////////////////////////////////////////////////////////////
-
-bool JSDialogHandler::OnJSAlert(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message)
-{
-	if (!GetCallback())
-		return false;
-
-	return GetCallback()->onJScriptAlert(message.c_str());
-}
-
-bool JSDialogHandler::OnJSConfirm(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, bool& retval)
-{
-	if (!GetCallback())
-		return false;
-
-	return (GetCallback()->onJScriptConfirm(message.c_str(), &retval));
-}
-
-bool JSDialogHandler::OnJSPrompt(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, const CefString& defaultValue, bool& retval, CefString& result)
-{
-	if (!GetCallback())
-		return false;
-
-	char resultBuff[255] = {0};
-	bool res = GetCallback()->onJScriptPrompt(message.c_str(), defaultValue.c_str(), &retval, resultBuff);
-
-	if (res)
-		result = resultBuff;
-
-	return res;
-}
+//
+//bool JSDialogHandler::OnJSAlert(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message)
+//{
+//	if (!GetCallback())
+//		return false;
+//
+//	return GetCallback()->onJScriptAlert(message.c_str());
+//}
+//
+//bool JSDialogHandler::OnJSConfirm(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, bool& retval)
+//{
+//	if (!GetCallback())
+//		return false;
+//
+//	return (GetCallback()->onJScriptConfirm(message.c_str(), &retval));
+//}
+//
+//bool JSDialogHandler::OnJSPrompt(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, const CefString& defaultValue, bool& retval, CefString& result)
+//{
+//	if (!GetCallback())
+//		return false;
+//
+//	char resultBuff[255] = {0};
+//	bool res = GetCallback()->onJScriptPrompt(message.c_str(), defaultValue.c_str(), &retval, resultBuff);
+//
+//	if (res)
+//		result = resultBuff;
+//
+//	return res;
+//}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// RenderHandler
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const CefRect& dirtyRect, const void* buffer)
+void RenderHandler::OnPaint(CefRefPtr<CefBrowser> browser,
+	PaintElementType type,
+	const RectList& dirtyRects,
+	const void* buffer,
+	int width, int height)
 {
 	if (GetRenderCallback() && type == PET_VIEW)
-		GetRenderCallback()->onPaint(dirtyRect.x, dirtyRect.y, dirtyRect.width, dirtyRect.height, buffer);
+	{
+		//TODO: dirtyRects[0].x, dirtyRects[0].y, dirtyRects[0].width, dirtyRects[0].height
+		GetRenderCallback()->onPaint(0 , 0, width, height, buffer);
+	}
+		
 }
 
 void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor)
@@ -404,6 +412,14 @@ void RenderHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandl
 	if (GetRenderCallback())
 		GetRenderCallback()->onCursorChange(ec);
 #endif
+}
+
+bool RenderHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
+{
+	if (GetRenderCallback())
+		return GetRenderCallback()->getViewRect(rect.x, rect.y, rect.width, rect.height);
+
+	return false;
 }
 
 

@@ -7,6 +7,8 @@
 #include "base/strings/string16.h"
 #include "base/strings/utf_string_conversions.h"
 
+#include <algorithm>
+
 namespace {
 
 void string_wide_dtor(wchar_t* str) {
