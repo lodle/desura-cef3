@@ -21,7 +21,7 @@
 #include "include/cef_client.h"
 #include "include/cef_browser.h"
 #include "include/cef_load_handler.h"
-#include "include/cef_menu_model.h"
+#include "include/cef_context_menu_handler.h"
 #include "include/cef_request_handler.h"
 #include "include/cef_display_handler.h"
 #include "include/cef_jsdialog_handler.h"
@@ -41,6 +41,7 @@ class ChromiumEventInfoI
 {
 public:
 	virtual ChromiumDLL::ChromiumBrowserEventI* GetCallback()=0;
+	virtual ChromiumDLL::ChromiumBrowserEventI_V2* GetCallbackV2() = 0;
 	virtual ChromiumDLL::ChromiumRendererEventI* GetRenderCallback()=0;
 	virtual void SetBrowser(CefRefPtr<CefBrowser> browser)=0;
 	virtual CefRefPtr<CefBrowser> GetBrowser()=0;
@@ -93,10 +94,22 @@ class RequestHandler : public CefRequestHandler, public virtual ChromiumEventInf
 {
 public:
 	virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool isRedirect) OVERRIDE;
-
-	//TODO
-	//virtual bool GetDownloadHandler(CefRefPtr<CefBrowser> browser, const CefString& mimeType, const CefString& fileName, int64 contentLength, CefRefPtr<CefDownloadHandler>& handler, const CefString& url) OVERRIDE;
 };
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/// DownloadHandler
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+class DownloadHandler : public CefDownloadHandler, public virtual ChromiumEventInfoI
+{
+public:
+	virtual void OnBeforeDownload(
+		CefRefPtr<CefBrowser> browser,
+		CefRefPtr<CefDownloadItem> download_item,
+		const CefString& suggested_name,
+		CefRefPtr<CefBeforeDownloadCallback> callback) OVERRIDE;
+};
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -133,7 +146,14 @@ public:
 class JSDialogHandler : public CefJSDialogHandler, public virtual ChromiumEventInfoI
 {
 public:
-
+	virtual bool OnJSDialog(CefRefPtr<CefBrowser> browser,
+		const CefString& origin_url,
+		const CefString& accept_lang,
+		JSDialogType dialog_type,
+		const CefString& message_text,
+		const CefString& default_prompt_text,
+		CefRefPtr<CefJSDialogCallback> callback,
+		bool& suppress_message) OVERRIDE;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,6 +174,20 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////////
+/// ContextMenuHandler
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+class ContextMenuHandler : public CefContextMenuHandler, public virtual ChromiumEventInfoI
+{
+public:
+	virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
+		CefRefPtr<CefFrame> frame,
+		CefRefPtr<CefContextMenuParams> params,
+		CefRefPtr<CefMenuModel> model) OVERRIDE;
+};
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
 /// ChromiumBrowserEvents
 /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -167,6 +201,7 @@ class ChromiumBrowserEvents :
 	, public KeyboardHandler
 	, public JSDialogHandler
 	, public RenderHandler
+	, public ContextMenuHandler
 {
 public:
 	ChromiumBrowserEvents(ChromiumBrowser* pParent);
@@ -176,8 +211,9 @@ public:
 
 	void setParent(ChromiumBrowser* parent);
 
-	virtual ChromiumDLL::ChromiumBrowserEventI* GetCallback();
-	virtual ChromiumDLL::ChromiumRendererEventI* GetRenderCallback();
+	virtual ChromiumDLL::ChromiumBrowserEventI* GetCallback() OVERRIDE;
+	virtual ChromiumDLL::ChromiumBrowserEventI_V2* GetCallbackV2() OVERRIDE;
+	virtual ChromiumDLL::ChromiumRendererEventI* GetRenderCallback() OVERRIDE;
 
 	virtual void SetBrowser(CefRefPtr<CefBrowser> browser);
 	virtual CefRefPtr<CefBrowser> GetBrowser();
@@ -190,6 +226,8 @@ public:
 	virtual CefRefPtr<CefKeyboardHandler>	GetKeyboardHandler()	{ return (CefKeyboardHandler*)this; }
 	virtual CefRefPtr<CefJSDialogHandler>	GetJSDialogHandler()	{ return (CefJSDialogHandler*)this; }
 	virtual CefRefPtr<CefRenderHandler>		GetRenderHandler()		{ return (RenderHandler*)this; }
+	virtual CefRefPtr<CefDownloadHandler>	GetDownloadHandler()	{ return (CefDownloadHandler*)this; }
+	virtual CefRefPtr<CefContextMenuHandler>	GetContextMenuHandler()	{ return (CefContextMenuHandler*)this; }
 
 private:
 	CefRefPtr<CefBrowser> m_Browser;

@@ -197,28 +197,23 @@ bool RequestHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 	return !GetCallback()->onNavigateUrl(url.c_str(), frame->IsMain());
 }
 
-//
-//bool RequestHandler::GetDownloadHandler(CefRefPtr<CefBrowser> browser, const CefString& mimeType, const CefString& fileName, int64 contentLength, CefRefPtr<CefDownloadHandler>& handler, const CefString& url)
-//{
-//	if (!GetCallback())
-//		return false;
-//
-//	if (g_nApiVersion <= 1)
-//		return false;
-//
-//#ifdef CHROMIUM_API_SUPPORTS_V2
-//	if (GetCallback()->ApiVersion() <= 1)
-//		return false;
-//
-//	std::string strUrl = url;
-//	std::string strMimeType = mimeType;
-//
-//	static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback())->onDownloadFile(strUrl.c_str(), strMimeType.c_str(), contentLength);
-//	return false;
-//#else
-//	return false;
-//#endif
-//}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/// DownloadHandler
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+void DownloadHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback)
+{
+	if (!GetCallbackV2())
+		return;
+
+	std::string strUrl = download_item->GetURL();
+	std::string strMimeType = download_item->GetMimeType();
+	int64 contentLength = download_item->GetTotalBytes();
+
+	GetCallbackV2()->onDownloadFile(strUrl.c_str(), strMimeType.c_str(), contentLength);
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -235,55 +230,29 @@ bool DisplayHandler::OnConsoleMessage(CefRefPtr<CefBrowser> browser, const CefSt
 
 void DisplayHandler::OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value)
 {
-	if (!GetCallback())
-		return;
-
-	if (g_nApiVersion <= 1)
-		return;
-
-#ifdef CHROMIUM_API_SUPPORTS_V2
-	if (GetCallback()->ApiVersion() <= 1)
+	if (!GetCallbackV2())
 		return;
 
 	std::string strText = value;
-	static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback())->onStatus(strText.c_str(), ChromiumDLL::STATUSTYPE_TEXT);
-#endif
+	GetCallbackV2()->onStatus(strText.c_str(), ChromiumDLL::STATUSTYPE_TEXT);
 }
 
 void DisplayHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title)
 {
-	if (!GetCallback())
-		return;
-
-	if (g_nApiVersion <= 1)
-		return;
-
-#ifdef CHROMIUM_API_SUPPORTS_V2
-	if (GetCallback()->ApiVersion() <= 1)
+	if (!GetCallbackV2())
 		return;
 
 	std::string strText = title;
-	static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback())->onTitle(strText.c_str());
-#endif
+	GetCallbackV2()->onTitle(strText.c_str());
 }
 
 bool DisplayHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text)
 {
-	if (!GetCallback())
-		return false;
-
-	if (g_nApiVersion <= 1)
-		return false;
-
-#ifdef CHROMIUM_API_SUPPORTS_V2
-	if (GetCallback()->ApiVersion() <= 1)
+	if (!GetCallbackV2())
 		return false;
 
 	std::string strText = text;
-	return static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback())->onToolTip(strText.c_str());
-#else
-	return false;
-#endif
+	return GetCallbackV2()->onToolTip(strText.c_str());
 }
 
 
@@ -334,51 +303,61 @@ bool KeyboardHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser,
 /// MenuHandler
 /////////////////////////////////////////////////////////////////////////////////////////////
 
-/*==========================================================================*|
-bool MenuHandler::OnBeforeMenu(CefRefPtr<CefBrowser> browser, const MenuInfo& menuInfo)
+
+void ContextMenuHandler::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
+	CefRefPtr<CefFrame> frame,
+	CefRefPtr<CefContextMenuParams> params,
+	CefRefPtr<CefMenuModel> model)
 {
 	if (!GetCallback())
-		return false;
+		return;
 
-	ChromiumMenuInfo cmi(menuInfo, GetBrowser()->GetWindowHandle());
-	return GetCallback()->HandlePopupMenu(&cmi);
+	ChromiumMenuInfo cmi(params, GetBrowser()->GetHost()->GetWindowHandle());
+
+	if (GetCallback()->HandlePopupMenu(&cmi))
+		model->Clear();
 }
-|*==========================================================================*/
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 /// JSDialogHandler
 /////////////////////////////////////////////////////////////////////////////////////////////
-//
-//bool JSDialogHandler::OnJSAlert(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message)
-//{
-//	if (!GetCallback())
-//		return false;
-//
-//	return GetCallback()->onJScriptAlert(message.c_str());
-//}
-//
-//bool JSDialogHandler::OnJSConfirm(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, bool& retval)
-//{
-//	if (!GetCallback())
-//		return false;
-//
-//	return (GetCallback()->onJScriptConfirm(message.c_str(), &retval));
-//}
-//
-//bool JSDialogHandler::OnJSPrompt(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& message, const CefString& defaultValue, bool& retval, CefString& result)
-//{
-//	if (!GetCallback())
-//		return false;
-//
-//	char resultBuff[255] = {0};
-//	bool res = GetCallback()->onJScriptPrompt(message.c_str(), defaultValue.c_str(), &retval, resultBuff);
-//
-//	if (res)
-//		result = resultBuff;
-//
-//	return res;
-//}
+
+bool JSDialogHandler::OnJSDialog(CefRefPtr<CefBrowser> browser,
+	const CefString& origin_url,
+	const CefString& accept_lang,
+	JSDialogType dialog_type,
+	const CefString& message_text,
+	const CefString& default_prompt_text,
+	CefRefPtr<CefJSDialogCallback> callback,
+	bool& suppress_message)
+{
+	if (!GetCallback())
+		return false;
+
+	char resultBuff[255] = { 0 };
+	bool success = false;
+	bool res = false;
+
+	if (dialog_type == JSDIALOGTYPE_ALERT)
+	{
+		res = GetCallback()->onJScriptAlert(message_text.c_str());
+		success = true;
+	}
+	else if (dialog_type == JSDIALOGTYPE_CONFIRM)
+	{
+		res = GetCallback()->onJScriptConfirm(message_text.c_str(), &success);
+	}
+	else if (dialog_type == JSDIALOGTYPE_PROMPT)
+	{
+		res = GetCallback()->onJScriptPrompt(message_text.c_str(), default_prompt_text.c_str(), &success, resultBuff);
+	}
+
+	if (res)
+		callback->Continue(success, resultBuff);
+
+	return res;
+}
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////
@@ -452,6 +431,20 @@ void ChromiumBrowserEvents::setParent(ChromiumBrowser* parent)
 ChromiumDLL::ChromiumBrowserEventI* ChromiumBrowserEvents::GetCallback()
 {
 	return m_pEventCallBack;
+}
+
+ChromiumDLL::ChromiumBrowserEventI_V2* ChromiumBrowserEvents::GetCallbackV2()
+{
+	if (!GetCallback())
+		return NULL;
+
+	if (g_nApiVersion <= 1)
+		return NULL;
+
+	if (GetCallback()->ApiVersion() <= 1)
+		return NULL;
+
+	return static_cast<ChromiumDLL::ChromiumBrowserEventI_V2*>(GetCallback());
 }
 
 ChromiumDLL::ChromiumRendererEventI* ChromiumBrowserEvents::GetRenderCallback()

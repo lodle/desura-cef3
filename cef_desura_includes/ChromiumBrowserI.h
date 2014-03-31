@@ -614,6 +614,8 @@ namespace ChromiumDLL
 		  MENUTYPE_VIDEO = 0x80,
 		  // A video node is selected
 		  MENUTYPE_AUDIO = 0x100,
+		  MENUTYPE_FILE = 0x200,
+		  MENUTYPE_PLUGIN = 0x400,
 		};
 
 		enum EditFlags
