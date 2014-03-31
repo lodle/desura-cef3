@@ -106,6 +106,8 @@ protected:
 	CefRefPtr<CefClient> m_rEventHandler;
 	CefBrowser* m_pBrowser;
 
+	CefRefPtr<CefBrowser> m_Inspector;
+
 
 	WIN_HANDLE m_hFormHandle;
 	std::string m_szBuffer;

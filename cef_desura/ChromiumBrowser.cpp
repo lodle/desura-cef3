@@ -244,23 +244,21 @@ public:
 
 		switch (m_Action)
 		{
-/*==========================================================================*|
-			case A_ZOOMIN:		frame->ZoomIn();	break;
-			case A_ZOOMOUT:		frame->ZoomOut();	break;
-			case A_ZOOMNORMAL:	frame->ZoomNormal(); break;
-			case A_PRINT:		frame->Print();		break;
-|*==========================================================================*/
-			case A_VIEWSOURCE:	frame->ViewSource(); break;
-			case A_UNDO:		frame->Undo();		break;
-			case A_REDO:		frame->Redo();		break;
-			case A_CUT:			frame->Cut();		break;
-			case A_COPY:		frame->Copy();		break;
-			case A_PASTE:		frame->Paste();		break;
-			case A_DEL:			frame->Delete();	break;
-			case A_SELECTALL:	frame->SelectAll(); break;
-			default:
-				handled = false;
-				break;
+		case A_ZOOMIN:		m_pBrowser->GetHost()->SetZoomLevel(m_pBrowser->GetHost()->GetZoomLevel() + 1);	break;
+		case A_ZOOMOUT:		m_pBrowser->GetHost()->SetZoomLevel(m_pBrowser->GetHost()->GetZoomLevel() - 1);	break;
+		case A_ZOOMNORMAL:	m_pBrowser->GetHost()->SetZoomLevel(0.0); break;
+		case A_PRINT:		m_pBrowser->GetHost()->Print();	break;
+		case A_VIEWSOURCE:	frame->ViewSource(); break;
+		case A_UNDO:		frame->Undo();		break;
+		case A_REDO:		frame->Redo();		break;
+		case A_CUT:			frame->Cut();		break;
+		case A_COPY:		frame->Copy();		break;
+		case A_PASTE:		frame->Paste();		break;
+		case A_DEL:			frame->Delete();	break;
+		case A_SELECTALL:	frame->SelectAll(); break;
+		default:
+			handled = false;
+			break;
 		};
 	}
 
@@ -615,38 +613,52 @@ void ChromiumBrowser::setBrowser(CefBrowser* browser)
 
 void ChromiumBrowser::showInspector()
 {
-/*==========================================================================*|
-	// nat: no such method
-	if (m_pBrowser)
-		m_pBrowser->ShowDevTools();
-|*==========================================================================*/
+	if (m_Inspector)
+	{
+		m_Inspector->GetHost()->SetFocus(true);
+		return;
+	}
+
+	CefString devUrl = m_Inspector->GetHost()->GetDevToolsURL(false);
+
+	CefWindowInfo winInfo;
+	winInfo.height = 500;
+	winInfo.width = 500;
+
+#if defined(OS_WIN)
+	winInfo.style = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP;
+	winInfo.SetAsPopup(NULL, "Webkit Inspector");
+#endif
+
+	const char* name = "WebkitInspector";
+	cef_string_copy(name, strlen(name), &winInfo.window_name);
+
+	m_Inspector = CefBrowserHost::CreateBrowserSync(winInfo, CefRefPtr<CefClient>(), devUrl, getBrowserDefaults(), CefRefPtr<CefRequestContext>());
 }
 
 void ChromiumBrowser::hideInspector()
 {
-/*==========================================================================*|
-	// nat: no such method
-	if (m_pBrowser)
-		m_pBrowser->CloseDevTools();
-|*==========================================================================*/
+	if (!m_Inspector)
+		return;
+
+	m_Inspector->GetHost()->CloseBrowser(true);
+	m_Inspector = CefRefPtr<CefBrowser>();
 }
 
 void ChromiumBrowser::inspectElement(int x, int y)
 {
-/*==========================================================================*|
-	// nat: no such method
-	if (m_pBrowser)
-		m_pBrowser->InspectElement(x, y);
-|*==========================================================================*/
+	showInspector();
 }
 
 void ChromiumBrowser::scroll(int x, int y, int delta, unsigned int flags)
 {
-/*==========================================================================*|
-	// nat: no such method
-	if (m_pBrowser)
-		m_pBrowser->MouseWheelEvent(x, y, delta, flags);
-|*==========================================================================*/
+	CefMouseEvent e;
+
+	e.x = x;
+	e.y = y;
+
+	if (m_pBrowser && m_pBrowser->GetHost())
+		m_pBrowser->GetHost()->SendMouseWheelEvent(e, delta, 0);
 }
 
 int* ChromiumBrowser::getBrowserHandle()

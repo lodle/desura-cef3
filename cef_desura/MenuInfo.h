@@ -48,7 +48,6 @@ public:
 	virtual int* getHWND();
 
 private:
-	std::vector<ChromiumMenuItem> m_vMenuItems;
 	CefRefPtr<CefContextMenuParams> &m_MenuInfo;
 	MenuHandle_t m_Hwnd;
 
