@@ -67,7 +67,7 @@ def write_svn_header(header, chrome_version, cef_version, cpp_header_dir):
     else:
       raise Exception('Not a valid checkout')
 
-    if (revision == None)
+    if revision == None:
       revision = 0
 
     # calculate api hashes
