@@ -332,6 +332,8 @@ CefBrowserSettings ChromiumBrowser::getBrowserDefaults()
 	browserDefaults.javascript_open_windows = STATE_DISABLED;
 //	browserDefaults.drag_drop = STATE_DISABLED;
 
+	browserDefaults.accelerated_compositing = STATE_DISABLED;
+
 	return browserDefaults;
 }
 
