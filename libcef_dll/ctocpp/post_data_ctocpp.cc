@@ -13,6 +13,7 @@
 #include "libcef_dll/ctocpp/post_data_ctocpp.h"
 #include "libcef_dll/ctocpp/post_data_element_ctocpp.h"
 
+#include <algorithm>
 
 // STATIC METHODS - Body may be edited by hand.
 

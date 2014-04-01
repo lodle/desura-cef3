@@ -16,6 +16,7 @@
 #include "libcef_dll/ctocpp/process_message_ctocpp.h"
 #include "libcef_dll/transfer_util.h"
 
+#include <algorithm>
 
 // VIRTUAL METHODS - Body may be edited by hand.
 

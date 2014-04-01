@@ -5,6 +5,7 @@
 #include "include/wrapper/cef_byte_read_handler.h"
 #include <stdlib.h>
 #include "libcef_dll/cef_logging.h"
+#include <algorithm>
 
 CefByteReadHandler::CefByteReadHandler(const unsigned char* bytes, size_t size,
                                        CefRefPtr<CefBase> source)
