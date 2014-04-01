@@ -117,6 +117,11 @@ public:
 		CefPostTask(TID_UI, CefRefPtr<CefTask>(new TaskWrapper(callback)));
 	}
 
+	virtual void PostCallbackEx(ChromiumDLL::ThreadID thread, ChromiumDLL::CallbackI* callback)
+	{
+		CefPostTask((CefThreadId)thread, CefRefPtr<CefTask>(new TaskWrapper(callback)));
+	}
+
 	virtual void DeleteCookie(const char* url, const char* name)
 	{
 		CEF_DeleteCookie_Internal(url, name);
@@ -152,6 +157,7 @@ public:
 		cef_string_copy(userAgent, strlen(userAgent), &settings.user_agent);
 
 		settings.multi_threaded_message_loop = threaded;
+		settings.remote_debugging_port = 2323;
 
 #ifdef _DEBUG
 		settings.single_process = true;
@@ -613,38 +619,48 @@ void ChromiumBrowser::setBrowser(CefBrowser* browser)
 #endif
 }
 
+template <typename T>
+CefRefPtr<CefTask> NewCallbackT(T t)
+{
+	return CefRefPtr<CefTask>(new TaskWrapper(new ChromiumDLL::CallbackT<T>(t)));
+}
+
 void ChromiumBrowser::showInspector()
 {
-	if (m_Inspector)
-	{
-		m_Inspector->GetHost()->SetFocus(true);
-		return;
-	}
+	CefPostTask(TID_UI, NewCallbackT([&](){
 
-	CefString devUrl = m_Inspector->GetHost()->GetDevToolsURL(false);
+		if (m_Inspector)
+		{
+			m_Inspector->GetHost()->SetFocus(true);
+			return;
+		}
 
-	CefWindowInfo winInfo;
-	winInfo.height = 500;
-	winInfo.width = 500;
+		CefWindowInfo winInfo;
+		winInfo.height = 500;
+		winInfo.width = 500;
 
-#if defined(OS_WIN)
-	winInfo.style = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP;
-	winInfo.SetAsPopup(NULL, "Webkit Inspector");
-#endif
+	#if defined(OS_WIN)
+		winInfo.style = WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_TABSTOP;
+		winInfo.SetAsPopup(NULL, "Webkit Inspector");
+	#endif
 
-	const char* name = "WebkitInspector";
-	cef_string_copy(name, strlen(name), &winInfo.window_name);
+		const char* name = "WebkitInspector";
+		cef_string_copy(name, strlen(name), &winInfo.window_name);
 
-	m_Inspector = CefBrowserHost::CreateBrowserSync(winInfo, CefRefPtr<CefClient>(), devUrl, getBrowserDefaults(), CefRefPtr<CefRequestContext>());
+		CefString devUrl = m_pBrowser->GetHost()->GetDevToolsURL(true);
+		m_Inspector = CefBrowserHost::CreateBrowserSync(winInfo, CefRefPtr<CefClient>(), devUrl, getBrowserDefaults(), CefRefPtr<CefRequestContext>());
+	}));
 }
 
 void ChromiumBrowser::hideInspector()
 {
-	if (!m_Inspector)
-		return;
+	CefPostTask(TID_UI, NewCallbackT([&](){
+		if (!m_Inspector)
+			return;
 
-	m_Inspector->GetHost()->CloseBrowser(true);
-	m_Inspector = CefRefPtr<CefBrowser>();
+		m_Inspector->GetHost()->CloseBrowser(true);
+		m_Inspector = CefRefPtr<CefBrowser>();
+	}));
 }
 
 void ChromiumBrowser::inspectElement(int x, int y)

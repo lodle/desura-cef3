@@ -896,6 +896,77 @@ namespace ChromiumDLL
 		virtual void run()=0;
 	};
 
+	enum ThreadID
+	{
+		///
+		// The main thread in the browser. This will be the same as the main
+		// application thread if CefInitialize() is called with a
+		// CefSettings.multi_threaded_message_loop value of false.
+		///
+		TID_UI,
+
+		///
+		// Used to interact with the database.
+		///
+		TID_DB,
+
+		///
+		// Used to interact with the file system.
+		///
+		TID_FILE,
+
+		///
+		// Used for file system operations that block user interactions.
+		// Responsiveness of this thread affects users.
+		///
+		TID_FILE_USER_BLOCKING,
+
+		///
+		// Used to launch and terminate browser processes.
+		///
+		TID_PROCESS_LAUNCHER,
+
+		///
+		// Used to handle slow HTTP cache operations.
+		///
+		TID_CACHE,
+
+		///
+		// Used to process IPC and network messages.
+		///
+		TID_IO,
+
+		// RENDER PROCESS THREADS -- Only available in the render process.
+
+		///
+		// The main thread in the renderer. Used for all WebKit and V8 interaction.
+		///
+		TID_RENDERER,
+	};
+
+	template <typename T>
+	class CallbackT : public CallbackI
+	{
+	public:
+		CallbackT(T t)
+			: m_T(t)
+		{
+		}
+
+		virtual void destroy()
+		{
+			delete this;
+		}
+
+		virtual void run()
+		{
+			m_T();
+		}
+
+		T m_T;
+	};
+
+
 	class ChromiumControllerI
 	{
 	public:
@@ -924,6 +995,14 @@ namespace ChromiumDLL
 		// Return true to handle msg
 		virtual void SetLogHandler(LogMessageHandlerFn logFn)=0;
 		virtual void PostCallback(CallbackI* callback)=0;
+
+		virtual void PostCallbackEx(ChromiumDLL::ThreadID thread, ChromiumDLL::CallbackI* callback) = 0;
+
+		template <typename T>
+		void PostcallbackT(ChromiumDLL::ThreadID thread, T t)
+		{
+			PostCallbackEx(thread, new CallbackT<T>(t));
+		}
 	};
 }
 
